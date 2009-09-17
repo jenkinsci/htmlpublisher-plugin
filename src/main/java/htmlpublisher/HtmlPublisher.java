@@ -49,6 +49,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 
@@ -66,9 +67,8 @@ public class HtmlPublisher extends Recorder {
     private final ArrayList<HtmlPublisherTarget> reportTargets;
 
     @DataBoundConstructor
-    public HtmlPublisher() {
-        this.reportTargets = new ArrayList<HtmlPublisherTarget>();
-        this.reportTargets.add(new HtmlPublisherTarget("", "", "", true));
+    public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
+        this.reportTargets = new ArrayList<HtmlPublisherTarget>(reportTargets);
     }
     
     public ArrayList<HtmlPublisherTarget> getReportTargets() {
@@ -259,7 +259,6 @@ public class HtmlPublisher extends Recorder {
         }
     }
 
-    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }

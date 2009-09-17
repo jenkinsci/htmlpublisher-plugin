@@ -8,6 +8,7 @@ import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
+import hudson.model.Describable;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import javax.servlet.ServletException;
 
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -48,14 +50,15 @@ public class HtmlPublisherTarget {
      * The name of the file which will be used as the wrapper index.
      */
     private final String wrapperName = "htmlpublisher-wrapper.html";
-    
-    public HtmlPublisherTarget(String report_name, String report_dir, String report_files, boolean keep_all) {
-        this.reportName = report_name;
-        this.reportDir = report_dir;
-        this.reportFiles = report_files;
-        this.keepAll = keep_all;
+
+    @DataBoundConstructor
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll) {
+        this.reportName = reportName;
+        this.reportDir = reportDir;
+        this.reportFiles = reportFiles;
+        this.keepAll = keepAll;
     }
-    
+
     public String getReportName() {
         return this.reportName;
     }
