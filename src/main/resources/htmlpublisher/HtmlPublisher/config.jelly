@@ -1,0 +1,49 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <!--
+    This jelly script is used for per-project configuration.
+
+    See global.jelly for a general discussion about jelly script.
+  -->
+  <f:entry>
+  
+    <table width="100%">
+      <col width="25%"/>
+      <col width="25%"/>
+      <col width="25%"/>
+      <col width="25%"/>
+      <tr>
+        <td>HTML directory to archive</td>
+        <td>Index page[s]</td>
+        <td>Report title</td>
+        <td>Keep past HTML reports</td>
+      </tr>
+    </table>
+
+      
+    <f:repeatable var="instance" varStatus="instStatus" items="${instance.reportTargets}">
+      <table width="100%">
+      <col width="25%"/>
+      <col width="25%"/>
+      <col width="25%"/>
+      <col width="25%"/>
+      <tr>
+        <td>
+          <f:textbox name="htmlpublishertarget.report_dir" value="${instance.reportDir}" default=""/>
+        </td>
+      
+        <td>
+          <f:textbox name="htmlpublishertarget.report_files" value="${instance.reportFiles}" default="index.html"/>
+        </td>
+        
+        <td>
+          <f:textbox name="htmlpublishertarget.report_name" value="${instance.reportName}" default="HTML Report"/>
+        </td>
+        
+        <td>
+          <f:checkbox name="htmlpublishertarget.keep_all" checked="${instance.keepAll}"/>
+        </td>
+      </tr>
+      </table>
+    </f:repeatable>
+  </f:entry>
+</j:jelly>
