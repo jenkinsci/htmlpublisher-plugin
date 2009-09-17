@@ -92,8 +92,8 @@ public class HtmlPublisherTarget {
     /**
      * Gets the directory where the HTML report is stored for the given project.
      */
-    private static File getProjectArchiveDir(AbstractItem project) {
-        return new File(project.getRootDir(), "htmlreports");
+    private File getProjectArchiveDir(AbstractItem project) {
+        return new File(new File(project.getRootDir(), "htmlreports"), this.getSanitizedName());
     }
     /**
      * Gets the directory where the HTML report is stored for the given build.
