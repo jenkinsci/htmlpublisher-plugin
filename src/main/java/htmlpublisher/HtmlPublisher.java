@@ -176,7 +176,13 @@ public class HtmlPublisher extends Recorder {
                 reports.add(report);
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
-                String reportName = report.substring(0, report.lastIndexOf("."));
+                int end = report.lastIndexOf(".");
+                String reportName;
+                if (end > 0) {
+                    reportName = report.substring(0, end);
+                } else {
+                    reportName = report;
+                }
                 String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
                 reportLines.add(tabItem);
             }
