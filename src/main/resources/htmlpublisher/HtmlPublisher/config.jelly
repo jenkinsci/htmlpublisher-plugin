@@ -7,40 +7,47 @@
   <f:entry>
   
     <table width="100%">
-      <col width="25%"/>
-      <col width="25%"/>
-      <col width="25%"/>
-      <col width="25%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
       <tr>
         <td>HTML directory to archive</td>
         <td>Index page[s]</td>
         <td>Report title</td>
         <td>Keep past HTML reports</td>
+        <td/>
       </tr>
     </table>
 
       
-    <f:repeatable var="instance" varStatus="instStatus" items="${instance.reportTargets}">
+    <f:repeatable var="instance" items="${instance.reportTargets}" name="reportTargets">
       <table width="100%">
-      <col width="25%"/>
-      <col width="25%"/>
-      <col width="25%"/>
-      <col width="25%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
+      <col width="20%"/>
       <tr>
         <td>
-          <f:textbox name="htmlpublishertarget.report_dir" value="${instance.reportDir}" default=""/>
+          <f:textbox name="reportDir" value="${instance.reportDir}" default=""/>
         </td>
       
         <td>
-          <f:textbox name="htmlpublishertarget.report_files" value="${instance.reportFiles}" default="index.html"/>
+          <f:textbox name="reportFiles" value="${instance.reportFiles}" default="index.html"/>
         </td>
         
         <td>
-          <f:textbox name="htmlpublishertarget.report_name" value="${instance.reportName}" default="HTML Report"/>
+          <f:textbox name="reportName" value="${instance.reportName}" default="HTML Report"/>
         </td>
         
         <td>
-          <f:checkbox name="htmlpublishertarget.keep_all" checked="${instance.keepAll}"/>
+          <f:checkbox name="keepAll" checked="${instance.keepAll}"/>
+        </td>
+        
+        <td>
+          <f:repeatableDeleteButton/>
         </td>
       </tr>
       </table>
