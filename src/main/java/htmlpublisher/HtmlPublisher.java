@@ -135,7 +135,7 @@ public class HtmlPublisher extends Recorder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException {
-        listener.getLogger().println("Archiving HTML report...");
+        listener.getLogger().println("[htmlpublisher] Archiving HTML reports...");
         
         // Grab the contents of the header and footer as arrays
         ArrayList<String> headerLines;
@@ -160,8 +160,8 @@ public class HtmlPublisher extends Recorder {
             FilePath archiveDir = build.getWorkspace().child(reportTarget.getReportDir());
             FilePath targetDir = reportTarget.getArchiveTarget(build);
             
-            listener.getLogger().println("Archive dir: " + archiveDir);
-            listener.getLogger().println("Target dir: " + targetDir);
+            String levelString = keepAll ? "BUILD" : "PROJECT"; 
+            listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
             // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
             String[] csvReports = reportTarget.getReportFiles().split(",");
@@ -234,10 +234,10 @@ public class HtmlPublisher extends Recorder {
 
     @Override
     public Action getProjectAction(AbstractProject project) {
-        //TODO: return all
         if (this.reportTargets.isEmpty()) {
             return null;
         } else {
+            //TODO: return ALL project actions, not just the first one
             return this.reportTargets.get(0).getProjectAction(project);            
         }
     }
