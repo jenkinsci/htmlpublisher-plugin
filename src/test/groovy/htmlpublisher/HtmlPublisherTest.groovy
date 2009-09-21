@@ -11,7 +11,7 @@ public class HtmlPublisherTest extends HudsonTestCase {
     /**
      * Makes sure that the configuration survives the round trip.
      */
-    def testConfigRoundtrip() {
+    public void testConfigRoundtrip() {
         def p = createFreeStyleProject();
         def l = [new HtmlPublisherTarget("a", "b", "c", true), new HtmlPublisherTarget("", "", "", false)]
 
