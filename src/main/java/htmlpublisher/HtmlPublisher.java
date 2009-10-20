@@ -223,7 +223,7 @@ public class HtmlPublisher extends Recorder {
             reportLines.addAll(footerLines);
             // And write this as the index
             try {
-                writeFile(reportLines, new File(targetDir.toString(), reportTarget.getWrapperName()));
+                writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -255,7 +255,7 @@ public class HtmlPublisher extends Recorder {
          */
         public FormValidation doCheck(@AncestorInPath AbstractProject project,
                 @QueryParameter String value) throws IOException, ServletException {
-            FilePath ws = project.getWorkspace();
+            FilePath ws = project.getSomeWorkspace();
             return ws != null ? ws.validateRelativeDirectory(value) : FormValidation.ok();
         }
 

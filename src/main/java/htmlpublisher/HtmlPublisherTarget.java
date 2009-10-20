@@ -8,7 +8,6 @@ import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
-import hudson.model.Describable;
 
 import java.io.File;
 import java.io.IOException;
