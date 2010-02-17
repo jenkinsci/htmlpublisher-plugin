@@ -13,4 +13,10 @@
   <version>0.2.0</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/htmlpublisher-0.2.0</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/htmlpublisher-0.2.0</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/htmlpublisher-0.2.0</url>
+  </scm>
 </project>
