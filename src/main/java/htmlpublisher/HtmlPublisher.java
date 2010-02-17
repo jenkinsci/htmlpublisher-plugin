@@ -48,6 +48,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +58,8 @@ import javax.servlet.ServletException;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
+
+import htmlpublisher.HtmlPublisherTarget;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -233,12 +237,15 @@ public class HtmlPublisher extends Recorder {
     }
 
     @Override
-    public Action getProjectAction(AbstractProject project) {
+    public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
         if (this.reportTargets.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         } else {
-            //TODO: return ALL project actions, not just the first one
-            return this.reportTargets.get(0).getProjectAction(project);            
+        	ArrayList<Action> actions = new ArrayList<Action>();
+            for (HtmlPublisherTarget target : this.reportTargets) {
+            	actions.add(target.getProjectAction(project));
+            }
+            return actions;
         }
     }
 

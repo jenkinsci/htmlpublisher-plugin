@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.jvnet.hudson.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.323</version>
+    <version>1.341</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.2.0</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
 </project>
