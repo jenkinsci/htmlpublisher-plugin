@@ -108,14 +108,11 @@ public class HtmlPublisherTarget {
 
         public String getDisplayName() {
             String action = HtmlPublisherTarget.this.reportName;
-            if (!dir().exists()) {
-                //TODO: don't show the action, somehow.
-            }
-            return action;
+            return dir().exists() ? action : null;
         }
 
         public String getIconFileName() {
-            return "graph.gif";
+            return dir().exists() ? "graph.gif" : null;
         }
 
         /**
