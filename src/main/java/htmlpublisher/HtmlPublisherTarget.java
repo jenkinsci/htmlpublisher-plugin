@@ -102,12 +102,18 @@ public class HtmlPublisherTarget {
     }
     
     protected abstract class BaseHTMLAction implements Action {
+        private HtmlPublisherTarget actualHtmlPublisherTarget;
+
+        public BaseHTMLAction(HtmlPublisherTarget actualHtmlPublisherTarget) {
+            this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
+        }
+
         public String getUrlName() {
-            return HtmlPublisherTarget.this.getSanitizedName();
+            return actualHtmlPublisherTarget.getSanitizedName();
         }
 
         public String getDisplayName() {
-            String action = HtmlPublisherTarget.this.reportName;
+            String action = actualHtmlPublisherTarget.reportName;
             return dir().exists() ? action : null;
         }
 
@@ -132,7 +138,8 @@ public class HtmlPublisherTarget {
     public class HTMLAction extends BaseHTMLAction implements ProminentProjectAction {
         private final AbstractItem project;
 
-        public HTMLAction(AbstractItem project) {
+        public HTMLAction(AbstractItem project, HtmlPublisherTarget actualHtmlPublisherTarget) {
+            super(actualHtmlPublisherTarget);
             this.project = project;
         }
 
@@ -163,7 +170,8 @@ public class HtmlPublisherTarget {
     public class HTMLBuildAction extends BaseHTMLAction {
         private final AbstractBuild<?, ?> build;
 
-        public HTMLBuildAction(AbstractBuild<?, ?> build) {
+        public HTMLBuildAction(AbstractBuild<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
+            super(actualHtmlPublisherTarget);
             this.build = build;
         }
 
@@ -181,11 +189,11 @@ public class HtmlPublisherTarget {
     public void handleAction(AbstractBuild<?, ?> build) {
         // Add build action, if coverage is recorded for each build
         if (this.keepAll) {
-            build.addAction(new HTMLBuildAction(build));
+            build.addAction(new HTMLBuildAction(build, this));
         }
     }
     
     public Action getProjectAction(AbstractProject project) {
-        return new HTMLAction(project);
+        return new HTMLAction(project, this);
     }
 }
