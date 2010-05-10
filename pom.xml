@@ -10,7 +10,13 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>0.4-SNAPSHOT</version>
+  <version>0.3</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
+
+  <scm>
+    <connection>scm:svn:https://guest@svn.dev.java.net/svn/hudson/tags/htmlpublisher-0.3</connection>
+    <developerConnection>scm:svn:https://svn.dev.java.net/svn/hudson/tags/htmlpublisher-0.3</developerConnection>
+    <url>https://hudson.dev.java.net/source/browse/hudson/tags/htmlpublisher-0.3</url>
+  </scm>
 </project>
