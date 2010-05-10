@@ -192,7 +192,12 @@ public class HtmlPublisher extends Recorder {
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Hudson.getInstance().getRootUrl();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + hudsonUrl + "\";</script>");
+            // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
+            if (hudsonUrl == null) {
+                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");
+            } else {
+                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + hudsonUrl + "\";</script>");
+            }
     
             try {
                 if (!archiveDir.exists()) {
