@@ -13,4 +13,10 @@
   <version>0.4-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
+  <developers>
+      <developer>
+          <id>mcrooney</id>
+          <name>Michael Rooney</name>
+      </developer>
+  </developers>
 </project>
