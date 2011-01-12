@@ -19,4 +19,9 @@
           <name>Michael Rooney</name>
       </developer>
   </developers>
+
+  <scm>
+      <connection>scm:git:git://github.com/hudson/htmlpublisher-plugin.git</connection>
+      <developerConnection>scm:git:git@github.com:hudson/htmlpublisher-plugin.git</developerConnection>
+  </scm>
 </project>
