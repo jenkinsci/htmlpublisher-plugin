@@ -10,7 +10,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>0.6</version>
+  <version>0.7-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
   <developers>
