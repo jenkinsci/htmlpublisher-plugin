@@ -12,7 +12,7 @@
   <packaging>hpi</packaging>
   <version>0.7-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
-  <url>http://wiki.hudson-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
+  <url>http://wiki.jenkins-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
   <developers>
       <developer>
           <id>mcrooney</id>
@@ -21,8 +21,8 @@
   </developers>
 
   <scm>
-      <connection>scm:git:git://github.com/hudson/htmlpublisher-plugin.git</connection>
-      <developerConnection>scm:git:git@github.com:hudson/htmlpublisher-plugin.git</developerConnection>
+      <connection>scm:git:git://github.com/jenkinsci/htmlpublisher-plugin.git</connection>
+      <developerConnection>scm:git:git@github.com:jenkinsci/htmlpublisher-plugin.git</developerConnection>
   </scm>
 
   <build>
@@ -38,8 +38,8 @@
 
   <distributionManagement>
       <repository>
-          <id>java.net-m2-repository</id>
-          <url>http://maven.hudson-labs.org:8081/content/repositories/releases/</url>
+          <id>maven.jenkins-ci.org</id>
+          <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
       </repository>
   </distributionManagement>
 </project>
