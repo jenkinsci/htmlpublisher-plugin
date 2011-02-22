@@ -12,7 +12,7 @@
   <packaging>hpi</packaging>
   <version>0.7-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
-  <url>http://wiki.jenkins-ci.org/display/HUDSON/HTML+Publisher+Plugin</url>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
   <developers>
       <developer>
           <id>mcrooney</id>
