@@ -2,10 +2,9 @@
   <modelVersion>4.0.0</modelVersion>
   
   <parent>
-    <groupId>org.jvnet.hudson.plugins</groupId>
+    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.395</version>
-    <relativePath>../pom.xml</relativePath>
+    <version>1.398</version>
   </parent>
 
   <artifactId>htmlpublisher</artifactId>
@@ -23,6 +22,7 @@
   <scm>
       <connection>scm:git:git://github.com/jenkinsci/htmlpublisher-plugin.git</connection>
       <developerConnection>scm:git:git@github.com:jenkinsci/htmlpublisher-plugin.git</developerConnection>
+      <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
   </scm>
 
   <build>
