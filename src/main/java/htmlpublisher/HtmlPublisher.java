@@ -27,39 +27,24 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Hudson;
-import hudson.model.Result;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixProject;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletException;
-
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import htmlpublisher.HtmlPublisherTarget;
+import javax.servlet.ServletException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -251,9 +236,19 @@ public class HtmlPublisher extends Recorder {
         if (this.reportTargets.isEmpty()) {
             return Collections.emptyList();
         } else {
-        	ArrayList<Action> actions = new ArrayList<Action>();
+            ArrayList<Action> actions = new ArrayList<Action>();
             for (HtmlPublisherTarget target : this.reportTargets) {
-            	actions.add(target.getProjectAction(project));
+                actions.add(target.getProjectAction(project));
+                if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){
+                    for (MatrixConfiguration mc : ((MatrixProject) project).getActiveConfigurations()){
+                        try {
+                          mc.onLoad(mc.getParent(), mc.getName());
+                        }
+                        catch (IOException e){
+                            //Could not reload the configuration.
+                        }
+                    }
+                }
             }
             return actions;
         }
