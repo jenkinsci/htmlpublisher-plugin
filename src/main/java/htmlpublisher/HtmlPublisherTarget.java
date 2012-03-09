@@ -4,10 +4,14 @@ import hudson.FilePath;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractItem;
 import hudson.model.AbstractProject;
+import hudson.model.AbstractDescribableImpl;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
 import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
+import hudson.model.Descriptor;
+import hudson.Extension;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -20,16 +24,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * A representation of an HTML directory to archive and publish.
- * 
+ *
  * @author Mike Rooney
  *
  */
-public class HtmlPublisherTarget {
+public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTarget> {
     /**
      * The name of the report to display for the build/project, such as "Code Coverage"
      */
     private final String reportName;
-    
+
     /**
      * The path to the HTML report directory relative to the workspace.
      */
@@ -61,33 +65,33 @@ public class HtmlPublisherTarget {
     public String getReportName() {
         return this.reportName;
     }
-    
+
     public String getReportDir() {
         return this.reportDir;
     }
-    
+
     public String getReportFiles() {
         return this.reportFiles;
     }
-    
+
     public boolean getKeepAll() {
         return this.keepAll;
     }
-    
+
     public String getSanitizedName() {
         String safeName = this.reportName;
         safeName = safeName.replace(" ", "_");
         return safeName;
     }
-    
+
     public String getWrapperName() {
         return this.wrapperName;
     }
-    
+
     public FilePath getArchiveTarget(AbstractBuild build) {
         return new FilePath(this.keepAll ? getBuildArchiveDir(build) : getProjectArchiveDir(build.getProject()));
     }
-    
+
     /**
      * Gets the directory where the HTML report is stored for the given project.
      */
@@ -100,7 +104,7 @@ public class HtmlPublisherTarget {
     private File getBuildArchiveDir(Run run) {
         return new File(new File(run.getRootDir(), "htmlreports"), this.getSanitizedName());
     }
-    
+
     protected abstract class BaseHTMLAction implements Action {
         private HtmlPublisherTarget actualHtmlPublisherTarget;
 
@@ -192,8 +196,13 @@ public class HtmlPublisherTarget {
             build.addAction(new HTMLBuildAction(build, this));
         }
     }
-    
+
     public Action getProjectAction(AbstractProject project) {
         return new HTMLAction(project, this);
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<HtmlPublisherTarget> {
+        public String getDisplayName() { return ""; }
     }
 }
