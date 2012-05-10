@@ -121,6 +121,16 @@ public class HtmlPublisher extends Recorder {
         return aList;
     }
 
+    protected static String resolveParametersInString(AbstractBuild<?, ?> build, BuildListener listener, String input) {
+        try {
+            return build.getEnvironment(listener).expand(input);
+        } catch (Exception e) {
+            listener.getLogger().println("Failed to resolve parameters in string \""+
+            input+"\" due to following error:\n"+e.getMessage());
+        }
+        return input;
+    }
+
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException {
@@ -146,14 +156,14 @@ public class HtmlPublisher extends Recorder {
             HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
             boolean keepAll = reportTarget.getKeepAll();
             
-            FilePath archiveDir = build.getWorkspace().child(reportTarget.getReportDir());
+            FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
             
             String levelString = keepAll ? "BUILD" : "PROJECT"; 
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
             // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = reportTarget.getReportFiles().split(",");
+            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
             ArrayList<String> reports = new ArrayList<String>();
             for (int j=0; j < csvReports.length; j++) {
                 String report = csvReports[j];
