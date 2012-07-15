@@ -29,7 +29,12 @@ import hudson.Launcher;
 import hudson.Util;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.BuildListener;
+import hudson.model.Hudson;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -40,11 +45,21 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -155,7 +170,7 @@ public class HtmlPublisher extends Recorder {
             ArrayList<String> reportLines = new ArrayList<String>(headerLines);
             HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
             boolean keepAll = reportTarget.getKeepAll();
-            
+
             FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
             
@@ -200,8 +215,8 @@ public class HtmlPublisher extends Recorder {
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
 
             try {
-                if (!archiveDir.exists()) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
+                archiveDir = resolveArchiveDir(build, archiveDir, reports, listener);
+                if (archiveDir == null) {
                     build.setResult(Result.FAILURE);
                     return true;
                 } else if (!keepAll) {
@@ -239,6 +254,51 @@ public class HtmlPublisher extends Recorder {
         }
 
         return true;
+    }
+
+    private FilePath resolveArchiveDir(AbstractBuild<?, ?> build, FilePath archiveDir, List<String> reports,
+                                       BuildListener listener) throws IOException, InterruptedException {
+        if (archiveDir.exists()) {
+            return archiveDir;
+        } else {
+            // For Ant pattern matching, we need only the first report extension
+            String firstReport = reports.get(0);
+            int lastPeriodPos = firstReport.lastIndexOf('.');
+            String firstReportExtension = firstReport.substring(lastPeriodPos);
+
+            String archiveDirAsStr = archiveDir.getRemote();
+            int lastAntStarPos = archiveDirAsStr.lastIndexOf("**");
+            if (lastAntStarPos < 0) {
+                return null;
+            }
+
+            FilePath basePath = new FilePath(new File(archiveDirAsStr.substring(0, lastAntStarPos)));
+
+            String firstReportFullPath = "**/*" + firstReportExtension;
+
+            listener.getLogger().println("Trying to resolve path searching for file '"
+                    + firstReportFullPath + "' inside '" + basePath + "'");
+            final Set<FilePath> filePaths = distinctParent(basePath.list(firstReportFullPath));
+
+            if (filePaths.size() < 1) {
+                listener.error("Unable to find any file matching '" + firstReportFullPath + "'!");
+                return null;
+            } else if (filePaths.size() > 1) {
+                listener.error("There are multiple paths matching '" + firstReportFullPath + "'!");
+                return null;
+            } else {
+                return filePaths.iterator().next();
+            }
+        }
+    }
+
+    private Set<FilePath> distinctParent(FilePath[] filesList) {
+        Set<FilePath> filePaths = new HashSet<FilePath>();
+        for (FilePath element: filesList) {
+            filePaths.add(element.getParent());
+        }
+
+        return filePaths;
     }
 
     @Override
