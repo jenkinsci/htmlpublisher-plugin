@@ -269,6 +269,7 @@ public class HtmlPublisher extends Recorder {
             String archiveDirAsStr = archiveDir.getRemote();
             int lastAntStarPos = archiveDirAsStr.lastIndexOf("**");
             if (lastAntStarPos < 0) {
+                listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                 return null;
             }
 
