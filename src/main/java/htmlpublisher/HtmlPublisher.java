@@ -57,9 +57,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -171,7 +169,34 @@ public class HtmlPublisher extends Recorder {
             HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
             boolean keepAll = reportTarget.getKeepAll();
 
-            FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
+            FilePath archiveDir = null;
+            try {
+                FilePath[] matches = build.getWorkspace().list(resolveParametersInString(build, listener, reportTarget.getReportDir()));
+                if (matches.length == 0) {
+                    listener.error("directory does not exist");
+                } else if (matches.length > 1) {
+                    listener.error("more than one path matched the pattern:");
+                    for(FilePath p: matches) {
+                        listener.error("- " + p);
+                    }
+                } else {
+                    archiveDir = matches[0].getParent();
+                    if (!archiveDir.isDirectory()) {
+                        listener.error("Pattern did not match a directory");
+                    }
+                }
+            } catch (IOException e) {
+                Util.displayIOException(e, listener);
+                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
+                build.setResult(Result.FAILURE);
+                return true;
+            }
+
+            if (archiveDir == null) {
+                build.setResult(Result.FAILURE);
+                return true;
+            }
+
             FilePath targetDir = reportTarget.getArchiveTarget(build);
             
             String levelString = keepAll ? "BUILD" : "PROJECT"; 
@@ -215,11 +240,7 @@ public class HtmlPublisher extends Recorder {
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
 
             try {
-                archiveDir = resolveArchiveDir(build, archiveDir, reports, listener);
-                if (archiveDir == null) {
-                    build.setResult(Result.FAILURE);
-                    return true;
-                } else if (!keepAll) {
+                if (!keepAll) {
                     // We are only keeping one copy at the project level, so remove the old one.
                     targetDir.deleteRecursive();
                 }
@@ -254,52 +275,6 @@ public class HtmlPublisher extends Recorder {
         }
 
         return true;
-    }
-
-    private FilePath resolveArchiveDir(AbstractBuild<?, ?> build, FilePath archiveDir, List<String> reports,
-                                       BuildListener listener) throws IOException, InterruptedException {
-        if (archiveDir.exists()) {
-            return archiveDir;
-        } else {
-            // For Ant pattern matching, we need only the first report extension
-            String firstReport = reports.get(0);
-            int lastPeriodPos = firstReport.lastIndexOf('.');
-            String firstReportExtension = firstReport.substring(lastPeriodPos);
-
-            String archiveDirAsStr = archiveDir.getRemote();
-            int lastAntStarPos = archiveDirAsStr.lastIndexOf("**");
-            if (lastAntStarPos < 0) {
-                listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-                return null;
-            }
-
-            FilePath basePath = new FilePath(new File(archiveDirAsStr.substring(0, lastAntStarPos)));
-
-            String firstReportFullPath = "**/*" + firstReportExtension;
-
-            listener.getLogger().println("Trying to resolve path searching for file '"
-                    + firstReportFullPath + "' inside '" + basePath + "'");
-            final Set<FilePath> filePaths = distinctParent(basePath.list(firstReportFullPath));
-
-            if (filePaths.size() < 1) {
-                listener.error("Unable to find any file matching '" + firstReportFullPath + "'!");
-                return null;
-            } else if (filePaths.size() > 1) {
-                listener.error("There are multiple paths matching '" + firstReportFullPath + "'!");
-                return null;
-            } else {
-                return filePaths.iterator().next();
-            }
-        }
-    }
-
-    private Set<FilePath> distinctParent(FilePath[] filesList) {
-        Set<FilePath> filePaths = new HashSet<FilePath>();
-        for (FilePath element: filesList) {
-            filePaths.add(element.getParent());
-        }
-
-        return filePaths;
     }
 
     @Override
