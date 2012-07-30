@@ -57,7 +57,7 @@ public class HtmlPublisher extends Recorder {
 
     @DataBoundConstructor
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
-        this.reportTargets = new ArrayList<HtmlPublisherTarget>(reportTargets);
+        this.reportTargets = reportTargets != null ? new ArrayList<HtmlPublisherTarget>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
     }
     
     public ArrayList<HtmlPublisherTarget> getReportTargets() {
