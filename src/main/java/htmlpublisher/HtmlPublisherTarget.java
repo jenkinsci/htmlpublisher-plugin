@@ -178,6 +178,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             super(actualHtmlPublisherTarget);
             this.build = build;
         }
+        
+        public final AbstractBuild<?,?> getOwner() {
+        	return build;
+        }
 
         @Override
         protected String getTitle() {

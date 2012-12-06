@@ -57,7 +57,10 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -174,11 +177,6 @@ public class HtmlPublisher extends Recorder {
                 FilePath[] matches = build.getWorkspace().list(resolveParametersInString(build, listener, reportTarget.getReportDir()));
                 if (matches.length == 0) {
                     listener.error("directory does not exist");
-                } else if (matches.length > 1) {
-                    listener.error("more than one path matched the pattern:");
-                    for(FilePath p: matches) {
-                        listener.error("- " + p);
-                    }
                 } else {
                     archiveDir = matches[0].getParent();
                     if (!archiveDir.isDirectory()) {
@@ -204,7 +202,6 @@ public class HtmlPublisher extends Recorder {
 
             // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
             String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-            ArrayList<String> reports = new ArrayList<String>();
             for (int j=0; j < csvReports.length; j++) {
                 String report = csvReports[j];
                 report = report.trim();
@@ -212,18 +209,30 @@ public class HtmlPublisher extends Recorder {
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.equals("")) {continue;}
                 
-                reports.add(report);
-                String tabNo = "tab" + (j + 1);
-                // Make the report name the filename without the extension.
-                int end = report.lastIndexOf(".");
-                String reportName;
-                if (end > 0) {
-                    reportName = report.substring(0, end);
-                } else {
-                    reportName = report;
-                }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
-                reportLines.add(tabItem);
+                try {
+					FilePath[] reportFiles = archiveDir.list(report);
+					Map<FilePath,String> reportNames = calculateReportNames(reportFiles);
+					
+					for (FilePath reportFile : reportFiles) {
+						String tabNo = "tab" + (j + 1);
+						// Make the report name the filename without the extension.
+						int end = report.lastIndexOf(".");
+						String reportName;
+						if (end > 0) {
+							reportName = report.substring(0, end);
+						} else {
+							reportName = report;
+						}
+						String relativeReport = reportFile.getRemote().substring(archiveDir.getRemote().length() + 1);
+						String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + relativeReport + "\">" + reportName + "</li>";
+						reportLines.add(tabItem);
+					}
+				} catch (IOException e) {
+	                Util.displayIOException(e, listener);
+	                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
+	                build.setResult(Result.FAILURE);
+	                return true;
+				}
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Hudson.getInstance().getRootUrl();
@@ -277,7 +286,44 @@ public class HtmlPublisher extends Recorder {
         return true;
     }
 
-    @Override
+    private Map<FilePath, String> calculateReportNames(FilePath[] reportFiles) {
+    	if (reportFiles.length == 0) {
+    		return Collections.emptyMap();
+    	}
+    	
+    	Map<String,List<FilePath>> names = new HashMap<String, List<FilePath>>();
+    	for (FilePath reportFile : reportFiles) {
+    		String reportName = reportFile.getBaseName();
+    		List<FilePath> list = names.get(reportName);
+    		if (list == null) {
+    			list = new ArrayList<FilePath>(3);
+    			names.put(reportName, list);
+    		}
+    		list.add(reportFile);
+    	}
+    	
+    	Map<FilePath,String> result = new HashMap<FilePath, String>();
+    	for (Map.Entry<String,List<FilePath>> nameEntry : names.entrySet()) {
+			List<FilePath> list = nameEntry.getValue();
+			if (list.size() == 1) {
+				result.put(list.get(0), nameEntry.getKey());
+			} else {
+				// duplicate names, make them unique
+				String parentPath = "";
+				File 
+				for (int i = 0; i < 10; i++) {
+					// 10 attempts (directory levels) to make the names unique
+					for (Iterator<FilePath> it = list.iterator(); it.hasNext();) {
+						FilePath path = it.next();
+						path.getParent().getName();
+					}
+				}
+			}
+		}
+    	
+	}
+
+	@Override
     public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
         if (this.reportTargets.isEmpty()) {
             return Collections.emptyList();
