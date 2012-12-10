@@ -13,7 +13,7 @@
       <col width="20%"/>
       <col width="20%"/>
       <tr>
-        <td>HTML directory to archive (Ant pattern supported)</td>
+        <td>HTML directory to archive</td>
         <td>Index page[s]</td>
         <td>Report title</td>
         <td>Keep past HTML reports</td>
