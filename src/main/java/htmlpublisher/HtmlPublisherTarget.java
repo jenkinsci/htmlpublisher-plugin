@@ -152,7 +152,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             if (this.project instanceof AbstractProject) {
                 AbstractProject abstractProject = (AbstractProject) this.project;
 
-                Run run = abstractProject.getLastSuccessfulBuild();
+                Run run = abstractProject.getLastCompletedBuild();
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 
