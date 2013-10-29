@@ -17,6 +17,7 @@
         <td>Index page[s]</td>
         <td>Report title</td>
         <td>Keep past HTML reports</td>
+        <td>Allow missing report</td>
         <td/>
       </tr>
     </table>
@@ -45,7 +46,11 @@
         <td>
           <f:checkbox field="keepAll" />
         </td>
-        
+
+        <td>
+          <f:checkbox field="allowMissing" />
+        </td>
+
         <td>
           <f:repeatableDeleteButton/>
         </td>

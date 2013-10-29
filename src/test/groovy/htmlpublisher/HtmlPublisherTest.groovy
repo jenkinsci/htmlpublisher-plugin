@@ -13,7 +13,7 @@ public class HtmlPublisherTest extends HudsonTestCase {
      */
     public void testConfigRoundtrip() {
         def p = createFreeStyleProject();
-        def l = [new HtmlPublisherTarget("a", "b", "c", true), new HtmlPublisherTarget("", "", "", false)]
+        def l = [new HtmlPublisherTarget("a", "b", "c", true, false), new HtmlPublisherTarget("", "", "", false, false)]
 
         p.publishersList.add(new HtmlPublisher(l));
         submit(createWebClient().getPage(p,"configure").getFormByName("config"));
@@ -22,7 +22,7 @@ public class HtmlPublisherTest extends HudsonTestCase {
         assertEquals(2,r.reportTargets.size())
 
         (0..1).each {
-            assertEqualBeans(l[it],r.reportTargets[it],"reportName,reportDir,reportFiles,keepAll");
+            assertEqualBeans(l[it],r.reportTargets[it],"reportName,reportDir,reportFiles,keepAll,allowMissing");
         }
     }
 

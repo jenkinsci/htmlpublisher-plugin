@@ -155,6 +155,7 @@ public class HtmlPublisher extends Recorder {
             ArrayList<String> reportLines = new ArrayList<String>(headerLines);
             HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
             boolean keepAll = reportTarget.getKeepAll();
+            boolean allowMissing = reportTarget.getAllowMissing();
             
             FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
@@ -200,7 +201,7 @@ public class HtmlPublisher extends Recorder {
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
 
             try {
-                if (!archiveDir.exists()) {
+                if (!archiveDir.exists() && !allowMissing) {
                     listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                     build.setResult(Result.FAILURE);
                     return true;
@@ -209,7 +210,7 @@ public class HtmlPublisher extends Recorder {
                     targetDir.deleteRecursive();
                 }
     
-                if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0) {
+                if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
                     listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
                     if (build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) {
                         // If the build failed, don't complain that there was no coverage.
@@ -232,7 +233,10 @@ public class HtmlPublisher extends Recorder {
             reportLines.addAll(footerLines);
             // And write this as the index
             try {
-                writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
+                if(archiveDir.exists())
+                {
+                    writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
