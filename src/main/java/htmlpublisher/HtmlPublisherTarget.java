@@ -50,16 +50,22 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final boolean keepAll;
 
     /**
+     * If true, will allow report to be missing and build will not fail on missing report.
+     */
+    private final boolean allowMissing;
+
+    /**
      * The name of the file which will be used as the wrapper index.
      */
     private final String wrapperName = "htmlpublisher-wrapper.html";
 
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
         this.reportName = reportName;
         this.reportDir = reportDir;
         this.reportFiles = reportFiles;
         this.keepAll = keepAll;
+        this.allowMissing = allowMissing;
     }
 
     public String getReportName() {
@@ -76,6 +82,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public boolean getKeepAll() {
         return this.keepAll;
+    }
+
+    public boolean getAllowMissing() {
+           return this.allowMissing;
     }
 
     public String getSanitizedName() {
