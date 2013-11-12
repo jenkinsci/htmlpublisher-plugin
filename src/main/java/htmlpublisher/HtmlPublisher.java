@@ -226,15 +226,14 @@ public class HtmlPublisher extends Recorder {
                 build.setResult(Result.FAILURE);
                 return true;
             }
-    
-            reportTarget.handleAction(build);
-    
+
             // Now add the footer.
             reportLines.addAll(footerLines);
             // And write this as the index
             try {
                 if(archiveDir.exists())
                 {
+                    reportTarget.handleAction(build);
                     writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
                 }
             } catch (IOException e) {
