@@ -6,6 +6,14 @@
     <artifactId>plugin</artifactId>
     <version>1.424</version>
   </parent>
+  
+  <licenses>
+    <license>
+      <name>The MIT License (MIT)</name>
+      <url>http://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
