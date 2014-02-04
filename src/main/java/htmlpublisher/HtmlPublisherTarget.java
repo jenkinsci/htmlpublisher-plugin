@@ -149,7 +149,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected abstract File dir();
     }
 
-    public class HTMLAction extends BaseHTMLAction implements ProminentProjectAction {
+    public class HTMLAction extends BaseHTMLAction /*implements ProminentProjectAction*/ {
         private final AbstractItem project;
 
         public HTMLAction(AbstractItem project, HtmlPublisherTarget actualHtmlPublisherTarget) {
@@ -162,7 +162,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             if (this.project instanceof AbstractProject) {
                 AbstractProject abstractProject = (AbstractProject) this.project;
 
-                Run run = abstractProject.getLastSuccessfulBuild();
+                Run run = abstractProject.getLastBuild();
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 

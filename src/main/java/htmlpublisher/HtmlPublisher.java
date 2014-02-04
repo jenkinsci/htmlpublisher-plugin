@@ -172,6 +172,26 @@ public class HtmlPublisher extends Recorder {
                 
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.equals("")) {continue;}
+
+                //Check if the file is up to date
+                String updated = "";
+                try{
+                    FilePath archiveFile = new FilePath(archiveDir, report);
+                    long fileTime = archiveFile.lastModified();
+                    long timeDiff = build.getBuiltOn().getClockDifference().diff;
+                    Date fileDate = new Date(fileTime + timeDiff);
+                    listener.getLogger().println("[htmlpublisher] Last modified time for " + report + ": " + fileDate + ". Time diff: " + timeDiff);
+
+                    SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                    Date buildDate = dateFormat.parse(build.getId());
+                    if(fileDate.before(buildDate)){
+                        updated = " - Not generated in this build";
+                    }
+                }catch (IOException e){
+                    e.printStackTrace();
+                }catch (ParseException e){
+                    e.printStackTrace();
+                }
                 
                 reports.add(report);
                 String tabNo = "tab" + (j + 1);
@@ -183,7 +203,7 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportName = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + updated + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
