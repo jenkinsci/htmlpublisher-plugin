@@ -26,7 +26,6 @@ package htmlpublisher;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
 import hudson.model.*;
@@ -35,6 +34,8 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -134,111 +135,27 @@ public class HtmlPublisher extends Recorder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException {
-        listener.getLogger().println("[htmlpublisher] Archiving HTML reports...");
-        
-        // Grab the contents of the header and footer as arrays
-        ArrayList<String> headerLines;
-        ArrayList<String> footerLines;
+        listener.getLogger().println("[CloudLock] Publishing Status to Geckoboard...");
+
+        String status = build.getResult() == Result.SUCCESS ? "Up" : "Down";
+
+        String body = "{\n" +
+                "  \"api_key\":\"9c58a0146cfb6de499dc731784484dbb\",\n" +
+                "  \"data\": {\n" +
+                "  \"status\": \"" + status + "\",\n" +
+                "  \"downTime\": \"123\",\n" +
+                "  \"responseTime\": \"593 ms\"\n" +
+                "}\n" +
+                "}";
+
         try {
-            headerLines = this.readFile("/htmlpublisher/HtmlPublisher/header.html");
-            footerLines = this.readFile("/htmlpublisher/HtmlPublisher/footer.html");
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
+            Request.Post("https://push.geckoboard.com/v1/send/48864-587e55b0-4639-0131-02b1-22000a9e51f0")
+                    .bodyString(body, ContentType.APPLICATION_JSON)
+                    .execute().returnContent();
+            listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
+        } catch (IOException e) {
+            listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
             return false;
-        } catch (IOException e1) {
-            e1.printStackTrace();
-            return false;
-        }
-        
-        for (int i=0; i < this.reportTargets.size(); i++) {
-            // Create an array of lines we will eventually write out, initially the header.
-            ArrayList<String> reportLines = new ArrayList<String>(headerLines);
-            HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
-            boolean keepAll = reportTarget.getKeepAll();
-            boolean allowMissing = reportTarget.getAllowMissing();
-            
-            FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
-            FilePath targetDir = reportTarget.getArchiveTarget(build);
-            
-            String levelString = keepAll ? "BUILD" : "PROJECT"; 
-            listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
-
-            // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-            ArrayList<String> reports = new ArrayList<String>();
-            for (int j=0; j < csvReports.length; j++) {
-                String report = csvReports[j];
-                report = report.trim();
-                
-                // Ignore blank report names caused by trailing or double commas.
-                if (report.equals("")) {continue;}
-                
-                reports.add(report);
-                String tabNo = "tab" + (j + 1);
-                // Make the report name the filename without the extension.
-                int end = report.lastIndexOf(".");
-                String reportName;
-                if (end > 0) {
-                    reportName = report.substring(0, end);
-                } else {
-                    reportName = report;
-                }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
-                reportLines.add(tabItem);
-            }
-            // Add the JS to change the link as appropriate.
-            String hudsonUrl = Hudson.getInstance().getRootUrl();
-            AbstractProject job = build.getProject();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
-            // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
-            if (hudsonUrl == null) {
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");
-            } else {
-                String jobUrl = hudsonUrl + job.getUrl();
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + jobUrl + "\";</script>");
-            }
-    
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
-
-            try {
-                if (!archiveDir.exists() && !allowMissing) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-                    build.setResult(Result.FAILURE);
-                    return true;
-                } else if (!keepAll) {
-                    // We are only keeping one copy at the project level, so remove the old one.
-                    targetDir.deleteRecursive();
-                }
-    
-                if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
-                    listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
-                    if (build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) {
-                        // If the build failed, don't complain that there was no coverage.
-                        // The build probably didn't even get to the point where it produces coverage.
-                        listener.error("This is especially strange since your build otherwise succeeded.");
-                    }
-                    build.setResult(Result.FAILURE);
-                    return true;
-                }
-            } catch (IOException e) {
-                Util.displayIOException(e, listener);
-                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
-                build.setResult(Result.FAILURE);
-                return true;
-            }
-
-            // Now add the footer.
-            reportLines.addAll(footerLines);
-            // And write this as the index
-            try {
-                if(archiveDir.exists())
-                {
-                    reportTarget.handleAction(build);
-                    writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
         return true;
