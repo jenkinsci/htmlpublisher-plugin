@@ -27,8 +27,6 @@ import com.google.gson.Gson;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixProject;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -111,29 +109,6 @@ public class HtmlPublisher extends Recorder {
         }
 
         return true;
-    }
-
-    @Override
-    public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
-        if (this.reportTargets.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            ArrayList<Action> actions = new ArrayList<Action>();
-            for (HtmlPublisherTarget target : this.reportTargets) {
-                actions.add(target.getProjectAction(project));
-                if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){
-                    for (MatrixConfiguration mc : ((MatrixProject) project).getActiveConfigurations()){
-                        try {
-                          mc.onLoad(mc.getParent(), mc.getName());
-                        }
-                        catch (IOException e){
-                            //Could not reload the configuration.
-                        }
-                    }
-                }
-            }
-            return actions;
-        }
     }
 
     @Extension
