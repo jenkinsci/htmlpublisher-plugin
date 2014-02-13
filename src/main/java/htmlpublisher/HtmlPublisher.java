@@ -76,25 +76,18 @@ public class HtmlPublisher extends Recorder {
             throws InterruptedException {
         listener.getLogger().println("[CloudLock] Publishing Status to Geckoboard...");
 
-        String status = build.getResult() == Result.SUCCESS ? "Up" : "Down";
+        String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
 
         for (HtmlPublisherTarget target : getReportTargets()) {
             listener.getLogger().println("[CloudLock] Publishing " + target.getName() + " to Geckoboard");
 
             String url = target.getUrl();
 
-            Map<String, String> map = new HashMap<String, String>();
-            map.put("api_key", target.getApiKey());
-
-
             String json_template = target.getJson();
 
             json_template = json_template.replace("%status%", status);
-
-            map.put("data", json_template);
-
-            Gson gson = new Gson();
-            String body = gson.toJson(map);
+            json_template = json_template.replace("%api_key%", target.getApiKey());
+            String body = json_template;
 
             try {
                 String content = Request.Post(url)
