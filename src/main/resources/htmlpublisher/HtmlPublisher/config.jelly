@@ -23,7 +23,7 @@
       </f:entry>
 
       <f:entry title="JSON">
-        <f:textbox field="json" />
+        <f:textarea field="json"></f:textarea>
       </f:entry>
       <tr>
         <td>
