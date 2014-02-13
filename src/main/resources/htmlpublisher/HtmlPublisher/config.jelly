@@ -5,57 +5,24 @@
     See global.jelly for a general discussion about jelly script.
   -->
   <f:entry>
-  
-    <table width="100%">
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <tr>
-        <td>HTML directory to archive</td>
-        <td>Index page[s]</td>
-        <td>Report title</td>
-        <td>Keep past HTML reports</td>
-        <td>Allow missing report</td>
-        <td/>
-      </tr>
-    </table>
-
-      
     <f:repeatable field="reportTargets">
-      <table width="100%">
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <tr>
-        <td>
-          <f:textbox field="reportDir" />
-        </td>
+        <f:entry title="Name">
+          <f:textbox field="name" />
+        </f:entry>
       
-        <td>
-          <f:textbox field="reportFiles"  default="index.html"/>
-        </td>
+        <f:entry title="URL">
+          <f:textbox field="url"  default="index.html"/>
+        </f:entry>
         
-        <td>
-          <f:textbox field="reportName" default="HTML Report"/>
-        </td>
+        <f:entry title="API Key">
+          <f:textbox field="apiKey" default="HTML Report"/>
+        </f:entry>
         
-        <td>
-          <f:checkbox field="keepAll" />
-        </td>
+        <f:entry title="JSON">
+          <f:textbox field="json" />
+        <f:entry>
 
-        <td>
-          <f:checkbox field="allowMissing" />
-        </td>
-
-        <td>
-          <f:repeatableDeleteButton/>
-        </td>
-      </tr>
-      </table>
+        <f:repeatableDeleteButton/>
     </f:repeatable>
   </f:entry>
 </j:jelly>
