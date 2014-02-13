@@ -6,23 +6,31 @@
   -->
   <f:entry>
     <f:repeatable field="reportTargets">
-        <f:entry title="Name">
-          <f:textbox field="name" />
-        </f:entry>
-      
-        <f:entry title="URL">
-          <f:textbox field="url"  default="index.html"/>
-        </f:entry>
-        
-        <f:entry title="API Key">
-          <f:textbox field="apiKey" default="HTML Report"/>
-        </f:entry>
-        
-        <f:entry title="JSON">
-          <f:textbox field="json" />
-        <f:entry>
+      <table width="100%">
+      <col width="50px"/>
+      <col width="50px"/>
+      <col width="90%"/>
+      <f:entry title="Name">
+        <f:textbox field="name" />
+      </f:entry>
 
-        <f:repeatableDeleteButton/>
+      <f:entry title="URL">
+        <f:textbox field="url"  default="index.html"/>
+      </f:entry>
+
+      <f:entry title="API Key">
+        <f:textbox field="apiKey" default="HTML Report"/>
+      </f:entry>
+
+      <f:entry title="JSON">
+        <f:textbox field="json" />
+      </f:entry>
+      <tr>
+        <td>
+          <f:repeatableDeleteButton/>
+        </td>
+      </tr>
+      </table>
     </f:repeatable>
   </f:entry>
 </j:jelly>
