@@ -23,6 +23,7 @@
  */
 package htmlpublisher;
 
+import com.google.gson.Gson;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -42,10 +43,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -65,63 +63,6 @@ public class HtmlPublisher extends Recorder {
         return this.reportTargets;
     }
 
-    private static void writeFile(ArrayList<String> lines, File path) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-        for (int i = 0; i < lines.size(); i++) {
-            bw.write(lines.get(i));
-            bw.newLine();
-        }
-        bw.close();
-        return;
-    }
-
-    public ArrayList<String> readFile(String filePath) throws java.io.FileNotFoundException,
-            java.io.IOException {
-        ArrayList<String> aList = new ArrayList<String>();
-
-        try {
-            final InputStream is = this.getClass().getResourceAsStream(filePath);
-            try {
-                final Reader r = new InputStreamReader(is);
-                try {
-                    final BufferedReader br = new BufferedReader(r);
-                    try {
-                        String line = null;
-                        while ((line = br.readLine()) != null) {
-                            aList.add(line);
-                        }
-                        br.close();
-                        r.close();
-                        is.close();
-                    } finally {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } finally {
-                    try {
-                        r.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } finally {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            // failure
-            e.printStackTrace();
-        }
-
-        return aList;
-    }
-
     protected static String resolveParametersInString(AbstractBuild<?, ?> build, BuildListener listener, String input) {
         try {
             return build.getEnvironment(listener).expand(input);
@@ -139,23 +80,34 @@ public class HtmlPublisher extends Recorder {
 
         String status = build.getResult() == Result.SUCCESS ? "Up" : "Down";
 
-        String body = "{\n" +
-                "  \"api_key\":\"9c58a0146cfb6de499dc731784484dbb\",\n" +
-                "  \"data\": {\n" +
-                "  \"status\": \"" + status + "\",\n" +
-                "  \"downTime\": \"123\",\n" +
-                "  \"responseTime\": \"593 ms\"\n" +
-                "}\n" +
-                "}";
+        for (HtmlPublisherTarget target : getReportTargets()) {
+            listener.getLogger().println("[CloudLock] Publishing " + target.getName() + " to Geckoboard");
 
-        try {
-            Request.Post("https://push.geckoboard.com/v1/send/48864-587e55b0-4639-0131-02b1-22000a9e51f0")
-                    .bodyString(body, ContentType.APPLICATION_JSON)
-                    .execute().returnContent();
-            listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
-        } catch (IOException e) {
-            listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
-            return false;
+            String url = target.getUrl();
+
+            Map<String, String> map = new HashMap<String, String>();
+            map.put("api_key", target.getApiKey());
+
+
+            String json_template = target.getJson();
+
+            json_template = json_template.replace("%status%", status);
+
+            map.put("data", json_template);
+
+            Gson gson = new Gson();
+            String body = gson.toJson(map);
+
+            try {
+                String content = Request.Post(url)
+                        .bodyString(body, ContentType.APPLICATION_JSON)
+                        .execute().returnContent().asString();
+                listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
+                listener.getLogger().println(content);
+            } catch (IOException e) {
+                listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
+                return false;
+            }
         }
 
         return true;
