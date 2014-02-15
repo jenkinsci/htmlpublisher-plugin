@@ -76,32 +76,36 @@ public class HtmlPublisher extends Recorder {
             throws InterruptedException {
         listener.getLogger().println("[CloudLock] Publishing Status to Geckoboard...");
 
-        String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
-
         for (HtmlPublisherTarget target : getReportTargets()) {
             listener.getLogger().println("[CloudLock] Publishing " + target.getName() + " to Geckoboard");
-
-            String url = target.getUrl();
-
-            String json_template = target.getJson();
-
-            json_template = json_template.replace("%status%", status);
-            json_template = json_template.replace("%api_key%", target.getApiKey());
-            String body = json_template;
-
-            try {
-                String content = Request.Post(url)
-                        .bodyString(body, ContentType.APPLICATION_JSON)
-                        .execute().returnContent().asString();
-                listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
-                listener.getLogger().println(content);
-            } catch (IOException e) {
-                listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
-                return false;
-            }
+            postToServer(build, target, listener);
         }
 
         return true;
+    }
+
+    private void postToServer(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
+        try {
+            String url = target.getUrl();
+            String body = buildStatus(build, target);
+            String content = Request.Post(url)
+                    .bodyString(body, ContentType.APPLICATION_JSON)
+                    .execute().returnContent().asString();
+            listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
+            listener.getLogger().println(content);
+        } catch (IOException e) {
+            listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
+        }
+    }
+
+    private String buildStatus(AbstractBuild<?, ?> build, HtmlPublisherTarget target) {
+        String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
+
+        String json_template = target.getJson();
+
+        json_template = json_template.replace("%status%", status);
+        json_template = json_template.replace("%api_key%", target.getApiKey());
+        return json_template;
     }
 
     @Extension
