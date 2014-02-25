@@ -88,7 +88,7 @@ public class HtmlPublisher extends Recorder {
     private void saveStatusFile(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
         try {
             String dir = System.getenv("JENKINS_STATUS_DIR");
-
+            listener.getLogger().println("JENKINS_STATUS_DIR: " + dir);
             Map<String, String> map = new HashMap<String, String>();
             String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
             map.put("status", status);
@@ -104,6 +104,7 @@ public class HtmlPublisher extends Recorder {
             listener.getLogger().println("Successfully created file: " + file.getAbsolutePath());
         } catch (Exception e) {
             listener.getLogger().println("Failed to create status file." + e.getMessage());
+            listener.getLogger().print(e);
         }
     }
 
