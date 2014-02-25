@@ -78,10 +78,33 @@ public class HtmlPublisher extends Recorder {
 
         for (HtmlPublisherTarget target : getReportTargets()) {
             listener.getLogger().println("[CloudLock] Publishing " + target.getName() + " to Geckoboard");
+            saveStatusFile(build, target, listener);
             postToServer(build, target, listener);
         }
 
         return true;
+    }
+
+    private void saveStatusFile(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
+        try {
+            String dir = System.getenv("JENKINS_STATUS_DIR");
+
+            Map<String, String> map = new HashMap<String, String>();
+            String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
+            map.put("status", status);
+
+            Gson gson = new Gson();
+
+            File parentDir = new File(dir);
+            File file = new File(parentDir, build.getDisplayName());
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            writer.println(gson.toJson(map));
+            writer.close();
+
+            listener.getLogger().println("Successfully created file: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            listener.getLogger().println("Failed to create status file." + e.getMessage());
+        }
     }
 
     private void postToServer(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
