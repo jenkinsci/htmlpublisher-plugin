@@ -87,7 +87,7 @@ public class HtmlPublisher extends Recorder {
 
     private void saveStatusFile(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
         try {
-            String dir = System.getenv("JENKINS_STATUS_DIR");
+            String dir = "/home/ubuntu/dashing/";
             listener.getLogger().println("JENKINS_STATUS_DIR: " + dir);
             Map<String, String> map = new HashMap<String, String>();
             String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
@@ -96,7 +96,7 @@ public class HtmlPublisher extends Recorder {
             Gson gson = new Gson();
 
             File parentDir = new File(dir);
-            File file = new File(parentDir, build.getDisplayName());
+            File file = new File(parentDir, build.getProject().getName());
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println(gson.toJson(map));
             writer.close();
