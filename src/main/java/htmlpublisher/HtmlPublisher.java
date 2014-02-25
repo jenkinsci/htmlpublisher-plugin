@@ -96,7 +96,7 @@ public class HtmlPublisher extends Recorder {
             Gson gson = new Gson();
 
             File parentDir = new File(dir);
-            File file = new File(parentDir, build.getProject().getName());
+            File file = new File(parentDir, build.getProject().getName() + ".json");
             PrintWriter writer = new PrintWriter(file, "UTF-8");
             writer.println(gson.toJson(map));
             writer.close();
