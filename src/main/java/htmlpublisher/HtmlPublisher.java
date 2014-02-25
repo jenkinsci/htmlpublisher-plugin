@@ -87,7 +87,7 @@ public class HtmlPublisher extends Recorder {
 
     private void saveStatusFile(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
         try {
-            String dir = "/home/ubuntu/dashing/";
+            String dir = "/var/dashing/";
             listener.getLogger().println("JENKINS_STATUS_DIR: " + dir);
             Map<String, String> map = new HashMap<String, String>();
             String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
