@@ -23,28 +23,25 @@
  */
 package htmlpublisher;
 
+import com.google.gson.Gson;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixProject;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.entity.ContentType;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -64,63 +61,6 @@ public class HtmlPublisher extends Recorder {
         return this.reportTargets;
     }
 
-    private static void writeFile(ArrayList<String> lines, File path) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-        for (int i = 0; i < lines.size(); i++) {
-            bw.write(lines.get(i));
-            bw.newLine();
-        }
-        bw.close();
-        return;
-    }
-
-    public ArrayList<String> readFile(String filePath) throws java.io.FileNotFoundException,
-            java.io.IOException {
-        ArrayList<String> aList = new ArrayList<String>();
-
-        try {
-            final InputStream is = this.getClass().getResourceAsStream(filePath);
-            try {
-                final Reader r = new InputStreamReader(is);
-                try {
-                    final BufferedReader br = new BufferedReader(r);
-                    try {
-                        String line = null;
-                        while ((line = br.readLine()) != null) {
-                            aList.add(line);
-                        }
-                        br.close();
-                        r.close();
-                        is.close();
-                    } finally {
-                        try {
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } finally {
-                    try {
-                        r.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } finally {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            // failure
-            e.printStackTrace();
-        }
-
-        return aList;
-    }
-
     protected static String resolveParametersInString(AbstractBuild<?, ?> build, BuildListener listener, String input) {
         try {
             return build.getEnvironment(listener).expand(input);
@@ -134,137 +74,62 @@ public class HtmlPublisher extends Recorder {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException {
-        listener.getLogger().println("[htmlpublisher] Archiving HTML reports...");
-        
-        // Grab the contents of the header and footer as arrays
-        ArrayList<String> headerLines;
-        ArrayList<String> footerLines;
-        try {
-            headerLines = this.readFile("/htmlpublisher/HtmlPublisher/header.html");
-            footerLines = this.readFile("/htmlpublisher/HtmlPublisher/footer.html");
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
-            return false;
-        } catch (IOException e1) {
-            e1.printStackTrace();
-            return false;
-        }
-        
-        for (int i=0; i < this.reportTargets.size(); i++) {
-            // Create an array of lines we will eventually write out, initially the header.
-            ArrayList<String> reportLines = new ArrayList<String>(headerLines);
-            HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
-            boolean keepAll = reportTarget.getKeepAll();
-            boolean allowMissing = reportTarget.getAllowMissing();
-            
-            FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
-            FilePath targetDir = reportTarget.getArchiveTarget(build);
-            
-            String levelString = keepAll ? "BUILD" : "PROJECT"; 
-            listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
+        listener.getLogger().println("[CloudLock] Publishing Status to Geckoboard...");
 
-            // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-            ArrayList<String> reports = new ArrayList<String>();
-            for (int j=0; j < csvReports.length; j++) {
-                String report = csvReports[j];
-                report = report.trim();
-                
-                // Ignore blank report names caused by trailing or double commas.
-                if (report.equals("")) {continue;}
-                
-                reports.add(report);
-                String tabNo = "tab" + (j + 1);
-                // Make the report name the filename without the extension.
-                int end = report.lastIndexOf(".");
-                String reportName;
-                if (end > 0) {
-                    reportName = report.substring(0, end);
-                } else {
-                    reportName = report;
-                }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
-                reportLines.add(tabItem);
-            }
-            // Add the JS to change the link as appropriate.
-            String hudsonUrl = Hudson.getInstance().getRootUrl();
-            AbstractProject job = build.getProject();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
-            // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
-            if (hudsonUrl == null) {
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");
-            } else {
-                String jobUrl = hudsonUrl + job.getUrl();
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + jobUrl + "\";</script>");
-            }
-    
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
-
-            try {
-                if (!archiveDir.exists() && !allowMissing) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-                    build.setResult(Result.FAILURE);
-                    return true;
-                } else if (!keepAll) {
-                    // We are only keeping one copy at the project level, so remove the old one.
-                    targetDir.deleteRecursive();
-                }
-    
-                if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
-                    listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
-                    if (build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) {
-                        // If the build failed, don't complain that there was no coverage.
-                        // The build probably didn't even get to the point where it produces coverage.
-                        listener.error("This is especially strange since your build otherwise succeeded.");
-                    }
-                    build.setResult(Result.FAILURE);
-                    return true;
-                }
-            } catch (IOException e) {
-                Util.displayIOException(e, listener);
-                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
-                build.setResult(Result.FAILURE);
-                return true;
-            }
-
-            // Now add the footer.
-            reportLines.addAll(footerLines);
-            // And write this as the index
-            try {
-                if(archiveDir.exists())
-                {
-                    reportTarget.handleAction(build);
-                    writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        for (HtmlPublisherTarget target : getReportTargets()) {
+            listener.getLogger().println("[CloudLock] Publishing " + target.getName() + " to Geckoboard");
+            saveStatusFile(build, target, listener);
+            postToServer(build, target, listener);
         }
 
         return true;
     }
 
-    @Override
-    public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
-        if (this.reportTargets.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            ArrayList<Action> actions = new ArrayList<Action>();
-            for (HtmlPublisherTarget target : this.reportTargets) {
-                actions.add(target.getProjectAction(project));
-                if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){
-                    for (MatrixConfiguration mc : ((MatrixProject) project).getActiveConfigurations()){
-                        try {
-                          mc.onLoad(mc.getParent(), mc.getName());
-                        }
-                        catch (IOException e){
-                            //Could not reload the configuration.
-                        }
-                    }
-                }
-            }
-            return actions;
+    private void saveStatusFile(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
+        try {
+            String dir = "/var/dashing/";
+            listener.getLogger().println("JENKINS_STATUS_DIR: " + dir);
+            Map<String, String> map = new HashMap<String, String>();
+            String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
+            map.put("status", status);
+
+            Gson gson = new Gson();
+
+            File parentDir = new File(dir);
+            File file = new File(parentDir, build.getProject().getName() + ".json");
+            PrintWriter writer = new PrintWriter(file, "UTF-8");
+            writer.println(gson.toJson(map));
+            writer.close();
+
+            listener.getLogger().println("Successfully created file: " + file.getAbsolutePath());
+        } catch (Exception e) {
+            listener.getLogger().println("Failed to create status file." + e.getMessage());
+            listener.getLogger().print(e);
         }
+    }
+
+    private void postToServer(AbstractBuild<?, ?> build, HtmlPublisherTarget target, BuildListener listener) {
+        try {
+            String url = target.getUrl();
+            String body = buildStatus(build, target);
+            String content = Request.Post(url)
+                    .bodyString(body, ContentType.APPLICATION_JSON)
+                    .execute().returnContent().asString();
+            listener.getLogger().println("[CloudLock] Status published to GeckoBoard");
+            listener.getLogger().println(content);
+        } catch (IOException e) {
+            listener.getLogger().println("Failed to make request to geckoboard " + e.getMessage());
+        }
+    }
+
+    private String buildStatus(AbstractBuild<?, ?> build, HtmlPublisherTarget target) {
+        String status = build.getResult() == Result.SUCCESS ? "passed" : "failed";
+
+        String json_template = target.getJson();
+
+        json_template = json_template.replace("%status%", status);
+        json_template = json_template.replace("%api_key%", target.getApiKey());
+        return json_template;
     }
 
     @Extension
