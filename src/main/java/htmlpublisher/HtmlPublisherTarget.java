@@ -45,6 +45,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final String reportFiles;
 
     /**
+     * If this is true and keepAll is true, publish the link on project level even if build failed.
+     */
+    private final boolean alwaysLinkToLastBuild;
+
+    /**
      * If true, archive reports for all successful builds, otherwise only the most recent.
      */
     private final boolean keepAll;
@@ -60,11 +65,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final String wrapperName = "htmlpublisher-wrapper.html";
 
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = reportName;
         this.reportDir = reportDir;
         this.reportFiles = reportFiles;
         this.keepAll = keepAll;
+        this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
     }
 
@@ -78,6 +84,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public String getReportFiles() {
         return this.reportFiles;
+    }
+
+    public boolean getAlwaysLinkToLastBuild() {
+        return this.alwaysLinkToLastBuild;
     }
 
     public boolean getKeepAll() {
@@ -135,6 +145,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return dir().exists() ? "graph.gif" : null;
         }
 
+        public boolean shouldLinkToLastBuild() {
+            return actualHtmlPublisherTarget.getAlwaysLinkToLastBuild();
+        }
+
         /**
          * Serves HTML reports.
          */
@@ -162,7 +176,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             if (this.project instanceof AbstractProject) {
                 AbstractProject abstractProject = (AbstractProject) this.project;
 
-                Run run = abstractProject.getLastSuccessfulBuild();
+                Run run = getArchiveBuild(abstractProject);
+
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 
@@ -173,6 +188,14 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             }
 
             return getProjectArchiveDir(this.project);
+        }
+
+        private Run getArchiveBuild(AbstractProject abstractProject) {
+            if (shouldLinkToLastBuild()) {
+                return abstractProject.getLastBuild();
+            } else {
+                return abstractProject.getLastSuccessfulBuild();
+            }
         }
 
         @Override

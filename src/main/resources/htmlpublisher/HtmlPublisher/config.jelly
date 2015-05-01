@@ -9,45 +9,54 @@
     <table width="100%">
       <col width="20%"/>
       <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
+      <col width="15%"/>
+      <col width="12%"/>
+      <col width="12%"/>
+      <col width="12%"/>
+      <col width="9%"/>
       <tr>
         <td>HTML directory to archive</td>
         <td>Index page[s]</td>
         <td>Report title</td>
         <td>Keep past HTML reports</td>
+        <td>Always link to last build on job page</td>
         <td>Allow missing report</td>
         <td/>
       </tr>
     </table>
 
-      
+
     <f:repeatable field="reportTargets">
       <table width="100%">
       <col width="20%"/>
       <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="20%"/>
+      <col width="15%"/>
+      <col width="12%"/>
+      <col width="12%"/>
+      <col width="12%"/>
+      <col width="9%"/>
       <tr>
         <td>
           <f:textbox field="reportDir" />
         </td>
-      
+
         <td>
           <f:textbox field="reportFiles"  default="index.html"/>
         </td>
-        
+
         <td>
           <f:textbox field="reportName" default="HTML Report"/>
         </td>
-        
-        <td>
+
+        <td align="center">
           <f:checkbox field="keepAll" />
         </td>
 
-        <td>
+        <td align="center">
+          <f:checkbox field="alwaysLinkToLastBuild" />
+        </td>
+
+        <td align="center">
           <f:checkbox field="allowMissing" />
         </td>
 
