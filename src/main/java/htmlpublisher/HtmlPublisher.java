@@ -46,6 +46,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.DirectoryScanner;
+
 /**
  * Saves HTML reports for the project and publishes them.
  * 
@@ -163,8 +166,10 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT"; 
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
-            // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+            // The index name might be a comma separated list of names or include a pattern like "*.html", so let's figure out all the pages we should index.
+            FileSet fs = Util.createFileSet(new File(archiveDir.getRemote()), reportTarget.getReportFiles());
+            DirectoryScanner ds = fs.getDirectoryScanner();
+            String[] csvReports = ds.getIncludedFiles();
             ArrayList<String> reports = new ArrayList<String>();
             for (int j=0; j < csvReports.length; j++) {
                 String report = csvReports[j];
