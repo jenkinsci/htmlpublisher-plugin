@@ -64,6 +64,25 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     private final String wrapperName = "htmlpublisher-wrapper.html";
 
+    /**
+     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}. 
+     */
+    @Deprecated
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
+        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
+    }
+
+    /**
+     * Constructor.
+     * @param reportName Report name
+     * @param reportDir Source directory in the job workspace
+     * @param reportFiles Files to be published
+     * @param keepAll True if the report should be stored for all builds
+     * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
+     *      Otherwise, the latest successful one will be referenced
+     * @param allowMissing If true, blocks the build failure if the report is missing
+     * @since 1.4
+     */
     @DataBoundConstructor
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = reportName;
