@@ -1,70 +1,19 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" 
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:htmlpublisher="/htmlpublisher/lib">
   <!--
     This jelly script is used for per-project configuration.
 
     See global.jelly for a general discussion about jelly script.
   -->
-  <f:entry>
-  
-    <table width="100%">
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="15%"/>
-      <col width="12%"/>
-      <col width="12%"/>
-      <col width="12%"/>
-      <col width="9%"/>
-      <tr>
-        <td>HTML directory to archive</td>
-        <td>Index page[s]</td>
-        <td>Report title</td>
-        <td>Keep past HTML reports</td>
-        <td>Always link to last build on job page</td>
-        <td>Allow missing report</td>
-        <td/>
-      </tr>
-    </table>
-
-
-    <f:repeatable field="reportTargets">
-      <table width="100%">
-      <col width="20%"/>
-      <col width="20%"/>
-      <col width="15%"/>
-      <col width="12%"/>
-      <col width="12%"/>
-      <col width="12%"/>
-      <col width="9%"/>
-      <tr>
-        <td>
-          <f:textbox field="reportDir" />
-        </td>
-
-        <td>
-          <f:textbox field="reportFiles"  default="index.html"/>
-        </td>
-
-        <td>
-          <f:textbox field="reportName" default="HTML Report"/>
-        </td>
-
-        <td align="center">
-          <f:checkbox field="keepAll" />
-        </td>
-
-        <td align="center">
-          <f:checkbox field="alwaysLinkToLastBuild" />
-        </td>
-
-        <td align="center">
-          <f:checkbox field="allowMissing" />
-        </td>
-
-        <td>
-          <f:repeatableDeleteButton/>
-        </td>
-      </tr>
-      </table>
-    </f:repeatable>
+  <f:entry title="${%Reports}">
+    <!--TODO: migrate to the new version of repeatableProperty with invokeBody support-->
+    <htmlpublisher:repeatableProperty field="reportTargets">
+      <f:entry title=""> 
+        <div align="right"> 
+          <f:repeatableDeleteButton value="${%Delete report}"/> 
+        </div> 
+      </f:entry>
+    </htmlpublisher:repeatableProperty>
   </f:entry>
 </j:jelly>
