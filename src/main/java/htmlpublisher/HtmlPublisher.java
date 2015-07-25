@@ -41,6 +41,7 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,13 +66,16 @@ public class HtmlPublisher extends Recorder {
     }
 
     private static void writeFile(ArrayList<String> lines, File path) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-        for (int i = 0; i < lines.size(); i++) {
-            bw.write(lines.get(i));
-            bw.newLine();
-        }
-        bw.close();
-        return;
+        //TODO: consider using UTF-8
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), Charset.defaultCharset()));
+        try {
+            for (int i = 0; i < lines.size(); i++) {
+                bw.write(lines.get(i));
+                bw.newLine();
+            }
+        } finally {
+            bw.close();
+        }     
     }
 
     public ArrayList<String> readFile(String filePath) throws java.io.FileNotFoundException,
@@ -81,7 +85,8 @@ public class HtmlPublisher extends Recorder {
         try {
             final InputStream is = this.getClass().getResourceAsStream(filePath);
             try {
-                final Reader r = new InputStreamReader(is);
+                // We expect that files have been generated with the default system's charset
+                final Reader r = new InputStreamReader(is, Charset.defaultCharset());
                 try {
                     final BufferedReader br = new BufferedReader(r);
                     try {
@@ -176,7 +181,7 @@ public class HtmlPublisher extends Recorder {
                 reports.add(report);
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
-                int end = report.lastIndexOf(".");
+                int end = report.lastIndexOf('.');
                 String reportName;
                 if (end > 0) {
                     reportName = report.substring(0, end);

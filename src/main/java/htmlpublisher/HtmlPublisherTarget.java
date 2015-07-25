@@ -62,7 +62,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     /**
      * The name of the file which will be used as the wrapper index.
      */
-    private final String wrapperName = "htmlpublisher-wrapper.html";
+    private static final String WRAPPER_NAME = "htmlpublisher-wrapper.html";
 
     @DataBoundConstructor
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
@@ -105,7 +105,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public String getWrapperName() {
-        return this.wrapperName;
+        return WRAPPER_NAME;
     }
 
     public FilePath getArchiveTarget(AbstractBuild build) {
@@ -154,7 +154,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          */
         public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "graph.gif", false);
-            dbs.setIndexFileName(HtmlPublisherTarget.this.wrapperName); // Hudson >= 1.312
+            dbs.setIndexFileName(HtmlPublisherTarget.WRAPPER_NAME); // Hudson >= 1.312
             dbs.generateResponse(req, rsp, this);
         }
 
