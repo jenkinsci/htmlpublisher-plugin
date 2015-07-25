@@ -7,6 +7,11 @@
     <version>1.424</version>
   </parent>
   
+  <properties>
+    <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
+    <findbugs.failOnError>true</findbugs.failOnError>
+  </properties>
+  
   <licenses>
     <license>
       <name>The MIT License (MIT)</name>
@@ -42,6 +47,25 @@
              <configuration>
                  <goals>deploy</goals>
              </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>${findbugs-maven-plugin.version}</version>
+            <configuration>
+              <xmlOutput>true</xmlOutput>
+              <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+              <failOnError>${findbugs.failOnError}</failOnError>
+            </configuration>
+            <executions>
+              <execution>
+                <id>run-findbugs</id>
+                <phase>verify</phase> 
+                <goals>
+                  <goal>check</goal> 
+                </goals>
+              </execution>
+            </executions>
           </plugin>
       </plugins>
   </build>
