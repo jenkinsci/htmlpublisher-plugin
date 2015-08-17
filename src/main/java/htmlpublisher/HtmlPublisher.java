@@ -23,6 +23,7 @@
  */
 package htmlpublisher;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -46,6 +47,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -57,6 +60,7 @@ public class HtmlPublisher extends Recorder {
     private final ArrayList<HtmlPublisherTarget> reportTargets;
 
     @DataBoundConstructor
+    @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
         this.reportTargets = reportTargets != null ? new ArrayList<HtmlPublisherTarget>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
     }
@@ -80,10 +84,15 @@ public class HtmlPublisher extends Recorder {
 
     public ArrayList<String> readFile(String filePath) throws java.io.FileNotFoundException,
             java.io.IOException {
+        return readFile(filePath, this.getClass());
+    }
+    
+    public static ArrayList<String> readFile(String filePath, Class<?> publisherClass) 
+            throws java.io.FileNotFoundException, java.io.IOException {
         ArrayList<String> aList = new ArrayList<String>();
 
         try {
-            final InputStream is = this.getClass().getResourceAsStream(filePath);
+            final InputStream is = publisherClass.getResourceAsStream(filePath);
             try {
                 // We expect that files have been generated with the default system's charset
                 final Reader r = new InputStreamReader(is, Charset.defaultCharset());
@@ -126,7 +135,7 @@ public class HtmlPublisher extends Recorder {
         return aList;
     }
 
-    protected static String resolveParametersInString(AbstractBuild<?, ?> build, BuildListener listener, String input) {
+    protected static String resolveParametersInString(Run<?, ?> build, TaskListener listener, String input) {
         try {
             return build.getEnvironment(listener).expand(input);
         } catch (Exception e) {
@@ -135,18 +144,38 @@ public class HtmlPublisher extends Recorder {
         }
         return input;
     }
+    
+    protected static String resolveParametersInString(EnvVars envVars, TaskListener listener, String input) {
+        try {
+            return envVars.expand(input);
+        } catch (Exception e) {
+            listener.getLogger().println("Failed to resolve parameters in string \""+
+            input+"\" due to following error:\n"+e.getMessage());
+        }
+        return input;
+    }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) 
             throws InterruptedException {
+        return publishReports(build, build.getWorkspace(), launcher, listener, reportTargets, this.getClass());
+    }
+    
+    /**
+     * Runs HTML the publishing operation for specified {@link HtmlPublisherTarget}s.
+     * @return False if the operation failed 
+     * @since TODO 
+     */
+    public static boolean publishReports(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener,
+            List<HtmlPublisherTarget> reportTargets, Class<?> publisherClass) throws InterruptedException {
         listener.getLogger().println("[htmlpublisher] Archiving HTML reports...");
         
         // Grab the contents of the header and footer as arrays
         ArrayList<String> headerLines;
         ArrayList<String> footerLines;
         try {
-            headerLines = this.readFile("/htmlpublisher/HtmlPublisher/header.html");
-            footerLines = this.readFile("/htmlpublisher/HtmlPublisher/footer.html");
+            headerLines = readFile("/htmlpublisher/HtmlPublisher/header.html", publisherClass);
+            footerLines = readFile("/htmlpublisher/HtmlPublisher/footer.html", publisherClass);
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
             return false;
@@ -155,14 +184,14 @@ public class HtmlPublisher extends Recorder {
             return false;
         }
         
-        for (int i=0; i < this.reportTargets.size(); i++) {
+        for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             ArrayList<String> reportLines = new ArrayList<String>(headerLines);
-            HtmlPublisherTarget reportTarget = this.reportTargets.get(i); 
+            HtmlPublisherTarget reportTarget = reportTargets.get(i); 
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
             
-            FilePath archiveDir = build.getWorkspace().child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
+            FilePath archiveDir = workspace.child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
             
             String levelString = keepAll ? "BUILD" : "PROJECT"; 
@@ -193,7 +222,7 @@ public class HtmlPublisher extends Recorder {
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Hudson.getInstance().getRootUrl();
-            AbstractProject job = build.getProject();
+            Job job = build.getParent();
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
             // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
             if (hudsonUrl == null) {
@@ -217,7 +246,8 @@ public class HtmlPublisher extends Recorder {
     
                 if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
                     listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
-                    if (build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) {
+                    final Result buildResult = build.getResult();
+                    if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
                         // If the build failed, don't complain that there was no coverage.
                         // The build probably didn't even get to the point where it produces coverage.
                         listener.error("This is especially strange since your build otherwise succeeded.");
@@ -295,6 +325,7 @@ public class HtmlPublisher extends Recorder {
         }
     }
 
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
