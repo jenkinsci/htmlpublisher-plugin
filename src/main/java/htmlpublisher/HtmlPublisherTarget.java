@@ -1,9 +1,8 @@
 package htmlpublisher;
 
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import hudson.FilePath;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractItem;
-import hudson.model.AbstractProject;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Action;
 import hudson.model.DirectoryBrowserSupport;
@@ -11,12 +10,17 @@ import hudson.model.ProminentProjectAction;
 import hudson.model.Run;
 import hudson.model.Descriptor;
 import hudson.Extension;
+import hudson.model.AbstractBuild;
+import hudson.model.InvisibleAction;
+import hudson.model.Job;
 
 
 import java.io.File;
 import java.io.IOException;
+import javax.annotation.Nonnull;
 
 import javax.servlet.ServletException;
+import jenkins.model.RunAction2;
 
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -126,9 +130,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public String getWrapperName() {
         return WRAPPER_NAME;
     }
-
-    public FilePath getArchiveTarget(AbstractBuild build) {
-        return new FilePath(this.keepAll ? getBuildArchiveDir(build) : getProjectArchiveDir(build.getProject()));
+    
+    public FilePath getArchiveTarget(Run build) {
+        return new FilePath(this.keepAll ? getBuildArchiveDir(build) : getProjectArchiveDir(build.getParent()));
     }
 
     /**
@@ -192,10 +196,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         protected File dir() {
-            if (this.project instanceof AbstractProject) {
-                AbstractProject abstractProject = (AbstractProject) this.project;
+            if (this.project instanceof Job) {
+                final Job job = (Job) this.project;
 
-                Run run = getArchiveBuild(abstractProject);
+                Run run = getArchiveBuild(job);
 
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
@@ -209,11 +213,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return getProjectArchiveDir(this.project);
         }
 
-        private Run getArchiveBuild(AbstractProject abstractProject) {
+        private Run getArchiveBuild(@Nonnull Job job) {
             if (shouldLinkToLastBuild()) {
-                return abstractProject.getLastBuild();
+                return job.getLastBuild();
             } else {
-                return abstractProject.getLastSuccessfulBuild();
+                return job.getLastSuccessfulBuild();
             }
         }
 
@@ -221,18 +225,68 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected String getTitle() {
             return this.project.getDisplayName() + " html2";
         }
+        
+        /**
+         * Gets {@link HtmlPublisherTarget}, for which the action has been created.
+         * @return HTML Report description
+         * @since TODO
+         */
+        public @Nonnull HtmlPublisherTarget getHTMLTarget() {
+            return HtmlPublisherTarget.this;
+        }
     }
 
-    public class HTMLBuildAction extends BaseHTMLAction {
-        private final AbstractBuild<?, ?> build;
+    /**
+     * Hidden action, which indicates the build has been published on the project level.
+     * This action is not an instance of {@link BaseHTMLAction} , because we want to
+     * avoid confusions with actions referring to the data.
+     * @since TODO
+     */
+    public static class HTMLPublishedForProjectMarkerAction extends InvisibleAction implements RunAction2 {
+        private transient Run<?, ?> build;
+        private final HtmlPublisherTarget actualHtmlPublisherTarget;
 
-        public HTMLBuildAction(AbstractBuild<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
+        public HTMLPublishedForProjectMarkerAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
+            this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
+            this.build = build;
+        }
+        
+        @WithBridgeMethods(value = AbstractBuild.class, adapterMethod = "getAbstractBuildOwner")
+        public final Run<?,?> getOwner() {
+            return build;
+        }
+        
+        @Deprecated
+        private final Object getAbstractBuildOwner(Run build, Class targetClass) {
+            return build instanceof AbstractBuild ? (AbstractBuild) build : null;
+        }
+
+        @Override
+        public void onAttached(Run<?, ?> r) {
+            this.build = r;
+        }
+
+        @Override
+        public void onLoad(Run<?, ?> r) {
+            this.build = r;
+        }
+
+        public HtmlPublisherTarget getHTMLTarget() {
+            return actualHtmlPublisherTarget;
+        }      
+    }
+    
+    public class HTMLBuildAction extends BaseHTMLAction implements RunAction2 {
+        private transient Run<?, ?> build;
+
+        public HTMLBuildAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
             super(actualHtmlPublisherTarget);
             this.build = build;
         }
         
-        public final AbstractBuild<?,?> getOwner() {
-        	return build;
+        @WithBridgeMethods(value = AbstractBuild.class, castRequired = true)
+        public final Run<?,?> getOwner() {
+            return build;
         }
 
         @Override
@@ -244,17 +298,80 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected File dir() {
             return getBuildArchiveDir(this.build);
         }
-    }
+        
+        /**
+         * Gets {@link HtmlPublisherTarget}, for which the action has been created.
+         * @return HTML Report description
+         * @since TODO
+         */
+        public @Nonnull HtmlPublisherTarget getHTMLTarget() {
+            return HtmlPublisherTarget.this;
+        }
 
-    public void handleAction(AbstractBuild<?, ?> build) {
-        // Add build action, if coverage is recorded for each build
-        if (this.keepAll) {
-            build.addAction(new HTMLBuildAction(build, this));
+        @Override
+        public void onAttached(Run<?, ?> r) {
+            build = r;
+        }
+
+        @Override
+        public void onLoad(Run<?, ?> r) {
+            build = r;
         }
     }
 
-    public Action getProjectAction(AbstractProject project) {
-        return new HTMLAction(project, this);
+    public void handleAction(Run<?, ?> build) {
+        // Add build action, if coverage is recorded for each build
+        if (this.keepAll) {
+            build.addAction(new HTMLBuildAction(build, this));
+        } else { // Othwewise we add a hidden marker
+            build.addAction(new HTMLPublishedForProjectMarkerAction(build, this));
+        }
+    }
+
+    public Action getProjectAction(AbstractItem item) {
+        return new HTMLAction(item, this);
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 97 * hash + (this.reportName != null ? this.reportName.hashCode() : 0);
+        hash = 97 * hash + (this.reportDir != null ? this.reportDir.hashCode() : 0);
+        hash = 97 * hash + (this.reportFiles != null ? this.reportFiles.hashCode() : 0);
+        hash = 97 * hash + (this.alwaysLinkToLastBuild ? 1 : 0);
+        hash = 97 * hash + (this.keepAll ? 1 : 0);
+        hash = 97 * hash + (this.allowMissing ? 1 : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final HtmlPublisherTarget other = (HtmlPublisherTarget) obj;
+        if ((this.reportName == null) ? (other.reportName != null) : !this.reportName.equals(other.reportName)) {
+            return false;
+        }
+        if ((this.reportDir == null) ? (other.reportDir != null) : !this.reportDir.equals(other.reportDir)) {
+            return false;
+        }
+        if ((this.reportFiles == null) ? (other.reportFiles != null) : !this.reportFiles.equals(other.reportFiles)) {
+            return false;
+        }
+        if (this.alwaysLinkToLastBuild != other.alwaysLinkToLastBuild) {
+            return false;
+        }
+        if (this.keepAll != other.keepAll) {
+            return false;
+        }
+        if (this.allowMissing != other.allowMissing) {
+            return false;
+        }
+        return true;
     }
 
     @Extension
