@@ -167,7 +167,7 @@ public class HtmlPublisher extends Recorder {
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
             // The index name might be a comma separated list of names or include a pattern like "*.html", so let's figure out all the pages we should index.
-            FileSet fs = Util.createFileSet(new File(archiveDir.getRemote()), reportTarget.getReportFiles());
+            FileSet fs = Util.createFileSet(new File(archiveDir.getRemote()), resolveParametersInString(build, listener, reportTarget.getReportFiles()));
             DirectoryScanner ds = fs.getDirectoryScanner();
             String[] csvReports = ds.getIncludedFiles();
             ArrayList<String> reports = new ArrayList<String>();
