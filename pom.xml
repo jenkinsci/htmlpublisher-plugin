@@ -23,7 +23,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>1.9</version>
+  <version>1.10-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
   <developers>
@@ -37,7 +37,7 @@
       <connection>scm:git:git://github.com/jenkinsci/htmlpublisher-plugin.git</connection>
       <developerConnection>scm:git:git@github.com:jenkinsci/htmlpublisher-plugin.git</developerConnection>
       <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
-    <tag>htmlpublisher-1.9</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <build>
