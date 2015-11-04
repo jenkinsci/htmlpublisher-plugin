@@ -64,6 +64,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final boolean allowMissing;
 
     /**
+     * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
+     */
+    @Deprecated
+    private transient String wrapperName;
+
+    /**
      * The name of the file which will be used as the wrapper index.
      */
     private static final String WRAPPER_NAME = "htmlpublisher-wrapper.html";
