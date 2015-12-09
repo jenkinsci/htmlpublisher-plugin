@@ -159,6 +159,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     protected abstract class BaseHTMLAction implements Action {
         private HtmlPublisherTarget actualHtmlPublisherTarget;
 
+        protected transient AbstractItem project;
+
         public BaseHTMLAction(HtmlPublisherTarget actualHtmlPublisherTarget) {
             this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
         }
@@ -197,7 +199,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public class HTMLAction extends BaseHTMLAction implements ProminentProjectAction {
-        private final AbstractItem project;
 
         private transient HTMLBuildAction actualBuildAction;
 
@@ -326,11 +327,13 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         @Override
         public void onAttached(Run<?, ?> r) {
             build = r;
+            this.project = r.getParent();
         }
 
         @Override
         public void onLoad(Run<?, ?> r) {
             build = r;
+            this.project = r.getParent();
         }
 
         public String getWrapperChecksum() {

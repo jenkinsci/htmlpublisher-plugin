@@ -57,6 +57,7 @@
               <xmlOutput>true</xmlOutput>
               <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
               <failOnError>${findbugs.failOnError}</failOnError>
+              <omitVisitors>UnreadFields</omitVisitors>
             </configuration>
             <executions>
               <execution>
