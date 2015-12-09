@@ -1,8 +1,6 @@
 <!--
   This view is used to render the plugin side panel.
 
-  We don't really have anything here, This is only a placeholder. 
+  We don't really have anything here, This is only a placeholder.
 -->
-<div>
-  This plugin publishes HTML reports.
-</div>
+<j:jelly xmlns:j="jelly:core"></j:jelly>

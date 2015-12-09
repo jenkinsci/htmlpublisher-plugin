@@ -20,6 +20,8 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import javax.servlet.ServletException;
+
+import hudson.util.HttpResponses;
 import jenkins.model.RunAction2;
 
 import org.kohsuke.stapler.StaplerRequest;
@@ -183,7 +185,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          */
         public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "graph.gif", false);
-            dbs.setIndexFileName(HtmlPublisherTarget.WRAPPER_NAME); // Hudson >= 1.312
+            if (req.getRestOfPath().equals("")) {
+                throw HttpResponses.forwardToView(this, "index.jelly");
+            }
             dbs.generateResponse(req, rsp, this);
         }
 
@@ -194,6 +198,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public class HTMLAction extends BaseHTMLAction implements ProminentProjectAction {
         private final AbstractItem project;
+
+        private transient HTMLBuildAction actualBuildAction;
 
         public HTMLAction(AbstractItem project, HtmlPublisherTarget actualHtmlPublisherTarget) {
             super(actualHtmlPublisherTarget);
@@ -211,6 +217,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                     File javadocDir = getBuildArchiveDir(run);
 
                     if (javadocDir.exists()) {
+                        actualBuildAction = run.getAction(HTMLBuildAction.class);
                         return javadocDir;
                     }
                 }
@@ -285,6 +292,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public class HTMLBuildAction extends BaseHTMLAction implements RunAction2 {
         private transient Run<?, ?> build;
 
+        private String wrapperChecksum;
+
         public HTMLBuildAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
             super(actualHtmlPublisherTarget);
             this.build = build;
@@ -323,12 +332,28 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         public void onLoad(Run<?, ?> r) {
             build = r;
         }
+
+        public String getWrapperChecksum() {
+            return wrapperChecksum;
+        }
+
+        private void setWrapperChecksum(String wrapperChecksum) {
+            this.wrapperChecksum = wrapperChecksum;
+        }
+
     }
 
+    @Deprecated
     public void handleAction(Run<?, ?> build) {
+        handleAction(build, null);
+    }
+
+    /* package */ void handleAction(Run<?, ?> build, String checksum) {
         // Add build action, if coverage is recorded for each build
         if (this.keepAll) {
-            build.addAction(new HTMLBuildAction(build, this));
+            HTMLBuildAction a = new HTMLBuildAction(build, this);
+            a.setWrapperChecksum(checksum);
+            build.addAction(a);
         } else { // Othwewise we add a hidden marker
             build.addAction(new HTMLPublishedForProjectMarkerAction(build, this));
         }

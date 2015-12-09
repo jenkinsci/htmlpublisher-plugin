@@ -43,6 +43,8 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.servlet.ServletException;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,17 +71,26 @@ public class HtmlPublisher extends Recorder {
         return this.reportTargets;
     }
 
-    private static void writeFile(ArrayList<String> lines, File path) throws IOException {
+    /**
+     *
+     * @return SHA checksum of the written file
+     */
+    private static String writeFile(ArrayList<String> lines, File path) throws IOException, NoSuchAlgorithmException {
+        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+
         //TODO: consider using UTF-8
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), Charset.defaultCharset()));
         try {
             for (int i = 0; i < lines.size(); i++) {
-                bw.write(lines.get(i));
-                bw.newLine();
+                String line = lines.get(i) + "\n";
+                bw.write(line);
+                sha1.update(line.getBytes("UTF-8"));
             }
         } finally {
             bw.close();
-        }     
+        }
+
+        return Util.toHexString(sha1.digest());
     }
 
     public ArrayList<String> readFile(String filePath) throws java.io.FileNotFoundException,
@@ -268,10 +279,13 @@ public class HtmlPublisher extends Recorder {
             try {
                 if(archiveDir.exists())
                 {
-                    reportTarget.handleAction(build);
-                    writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
+                    String checksum = writeFile(reportLines, new File(targetDir.getRemote(), reportTarget.getWrapperName()));
+                    reportTarget.handleAction(build, checksum);
                 }
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                // cannot happen because SHA-1 is guaranteed to exist
                 e.printStackTrace();
             }
         }
