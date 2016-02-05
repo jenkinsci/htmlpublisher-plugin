@@ -218,7 +218,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                     File javadocDir = getBuildArchiveDir(run);
 
                     if (javadocDir.exists()) {
-                        actualBuildAction = run.getAction(HTMLBuildAction.class);
+                        for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
+                            if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
+                                actualBuildAction = a;
+                            }
+                        }
                         return javadocDir;
                     }
                 }
