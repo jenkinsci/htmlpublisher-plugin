@@ -26,6 +26,7 @@ import jenkins.model.RunAction2;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -78,6 +79,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * The name of the file which will be used as the wrapper index.
      */
     private static final String WRAPPER_NAME = "htmlpublisher-wrapper.html";
+
+    public static final String INCLUDE_ALL_PATTERN="**/*";
+
+    private String includes;
 
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
@@ -404,6 +409,35 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public Action getProjectAction(AbstractItem item) {
         return new HTMLAction(item, this);
+    }
+
+    /**
+     *
+     * @return the pattern for including files
+     */
+    public String getIncludes() {
+        return includes;
+    }
+
+    /**
+     *
+     * @param includes  Ant GLOB pattern
+     */
+    @DataBoundSetter
+    public void setIncludes(String includes) {
+        this.includes = includes;
+    }
+
+    /**
+     * Called by XStream after object construction
+     * @return modified object
+     */
+    protected Object readResolve() {
+        if (includes == null) {
+            //backward compatibility
+            includes = INCLUDE_ALL_PATTERN;
+        }
+        return this;
     }
 
     @Override

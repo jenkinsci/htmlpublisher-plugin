@@ -31,5 +31,8 @@
     <f:entry field="allowMissing" title="${%allowMissing.title}">
       <f:checkbox/>
     </f:entry>
+    <f:entry field="includes" title="${%reportFiles.includes}" description="${%reportFiles.includesHelp}">
+      <f:textbox default="**/*"/>
+    </f:entry>
   </f:advanced>
 </j:jelly>
