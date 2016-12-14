@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -232,7 +233,7 @@ public class HtmlPublisher extends Recorder {
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
-            String hudsonUrl = Hudson.getInstance().getRootUrl();
+            String hudsonUrl = Jenkins.getActiveInstance().getRootUrl();
             Job job = build.getParent();
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
             // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.

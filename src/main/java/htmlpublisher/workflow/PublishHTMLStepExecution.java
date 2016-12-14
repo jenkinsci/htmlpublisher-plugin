@@ -32,7 +32,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import java.util.Arrays;
 import javax.inject.Inject;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousStepExecution;
+import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
 import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 /**
@@ -40,7 +40,7 @@ import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
  * @author Oleg Nenashev
  * @since TODO
  */
-public class PublishHTMLStepExecution extends AbstractSynchronousStepExecution<Void> {
+public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
     
     @StepContextParameter
     private transient TaskListener listener;
