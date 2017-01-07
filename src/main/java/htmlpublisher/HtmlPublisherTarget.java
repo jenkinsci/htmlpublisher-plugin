@@ -23,6 +23,8 @@ import javax.servlet.ServletException;
 
 import hudson.util.HttpResponses;
 import jenkins.model.RunAction2;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -252,6 +254,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         public @Nonnull HtmlPublisherTarget getHTMLTarget() {
             return HtmlPublisherTarget.this;
         }
+
+        @Restricted(NoExternalUse.class) // read by Groovy view
+        public HTMLBuildAction getActualBuildAction() {
+            return actualBuildAction;
+        }
+
     }
 
     /**
