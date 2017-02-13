@@ -94,7 +94,7 @@ public class PublishHTMLStepTest {
         
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html", false, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html","", false, false, false);
         setupAndRunProject(target);
         
         // Ensure that the report has been attached properly
@@ -114,7 +114,7 @@ public class PublishHTMLStepTest {
         
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html", true, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html","index", true, false, false);
         setupAndRunProject(target);
         
         // Ensure that the report has been attached properly
@@ -131,7 +131,7 @@ public class PublishHTMLStepTest {
     public void publishMissingReportFolder() throws Exception { 
         final String missingReportDir = "testReportDirNonExistent";
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", missingReportDir, "index.html", false, false, false);
+            ("testReport", missingReportDir, "index.html","index", false, false, false);
         setupAndRunProject(target);
         File missingReportDirFile = new File(testWorkspace, "workspace/" + TEST_PROJECT_NAME + "/" + missingReportDir);
         
@@ -144,7 +144,7 @@ public class PublishHTMLStepTest {
     
     @Test 
     public void publishMissingReport_allowMissing() throws Exception {     
-        setupAndRunProject(new HtmlPublisherTarget("testReport", "testReportDirNonExistent", "index.html", 
+        setupAndRunProject(new HtmlPublisherTarget("testReport", "testReportDirNonExistent", "index.html", "index",
                 false, false, true));
         
         // Ensure that the report has been attached
@@ -187,13 +187,13 @@ public class PublishHTMLStepTest {
     }
 
     private void configRoundTrip(String reportName, String reportDir, String reportFiles) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, 
+        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles,"index",
                 false, false, false));
     }
     
     private void configRoundTrip(String reportName, String reportDir, String reportFiles, 
             boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, 
+        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles,"index",
                 keepAll, alwaysLinkToLastBuild, allowMissing));
     }
      

@@ -13,7 +13,7 @@ public class HtmlPublisherTest extends HudsonTestCase {
      */
     public void testConfigRoundtrip() {
         def p = createFreeStyleProject();
-        def l = [new HtmlPublisherTarget("a", "b", "c", true, true, false), new HtmlPublisherTarget("", "", "", false, false, false)]
+        def l = [new HtmlPublisherTarget("a", "b", "c","", true, true, false), new HtmlPublisherTarget("", "", "","", false, false, false)]
 
         p.publishersList.add(new HtmlPublisher(l));
         submit(createWebClient().getPage(p,"configure").getFormByName("config"));
