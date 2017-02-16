@@ -94,7 +94,7 @@ public class PublishHTMLStepTest {
         
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html","", false, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html", "", false, false, false);
         setupAndRunProject(target);
         
         // Ensure that the report has been attached properly
