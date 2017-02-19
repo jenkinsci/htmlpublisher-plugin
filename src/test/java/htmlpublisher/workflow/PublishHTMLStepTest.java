@@ -54,27 +54,27 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 public class PublishHTMLStepTest {
 
-    @Rule 
+    @Rule
     public JenkinsRule r = new JenkinsRule();
-    
-    @Rule 
+
+    @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
-    
+
     private WorkflowJob job;
     private WorkflowRun run;
     private File testWorkspace;
     private File testReportDir;
-    
+
     private static final String TEST_REPORT_DIR = "testReportDir";
     private static final String TEST_PROJECT_NAME = "p";
-    
+
     @Before
     public void setupReportFolder() throws IOException {
         testWorkspace = tmp.newFolder("workflowWS");
         testReportDir = new File(testWorkspace, "workspace/" + TEST_PROJECT_NAME + "/" + TEST_REPORT_DIR);
     }
-    
-    @Test 
+
+    @Test
     public void configRoundTrip() throws Exception {
         configRoundTrip("Foo", "archive", "index.html");
         configRoundTrip("Foo2", "archive/foo/bar", "index2.html");
@@ -85,18 +85,18 @@ public class PublishHTMLStepTest {
         configRoundTrip("Report", "archive", "index.html", false, true, false);
         configRoundTrip("Report", "archive", "index.html", false, false, true);
     }
-    
-    @Test 
-    public void publishReportOnProjectLevel() throws Exception { 
-        
+
+    @Test
+    public void publishReportOnProjectLevel() throws Exception {
+
         // Prepare the environment
         writeTestHTML("index.html");
-        
+
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
             ("testReport", TEST_REPORT_DIR, "index.html", "", false, false, false);
         setupAndRunProject(target);
-        
+
         // Ensure that the report has been attached properly
         r.assertBuildStatus(Result.SUCCESS, run);
         HtmlPublisherTarget.HTMLAction jobReport = job.getAction(HtmlPublisherTarget.HTMLAction.class);
@@ -105,18 +105,18 @@ public class PublishHTMLStepTest {
         assertEquals(target.getReportName(), jobReport.getHTMLTarget().getReportName());
         assertNull("Report should be missing at the run level", buildReport);
     }
-    
-    @Test 
-    public void publishReportOnBuildLevel() throws Exception { 
-        
+
+    @Test
+    public void publishReportOnBuildLevel() throws Exception {
+
         // Prepare the environment
         writeTestHTML("index.html");
-        
+
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html","index", true, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html", "index", true, false, false);
         setupAndRunProject(target);
-        
+
         // Ensure that the report has been attached properly
         r.assertBuildStatus(Result.SUCCESS, run);
         HtmlPublisherTarget.HTMLAction jobReport = job.getAction(HtmlPublisherTarget.HTMLAction.class);
@@ -126,38 +126,38 @@ public class PublishHTMLStepTest {
         assertNotNull("Report should be present at the run level", buildReport);
         assertEquals(target.getReportName(), buildReport.getHTMLTarget().getReportName());
     }
-    
-    @Test 
-    public void publishMissingReportFolder() throws Exception { 
+
+    @Test
+    public void publishMissingReportFolder() throws Exception {
         final String missingReportDir = "testReportDirNonExistent";
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", missingReportDir, "index.html","index", false, false, false);
+            ("testReport", missingReportDir, "index.html", "index", false, false, false);
         setupAndRunProject(target);
         File missingReportDirFile = new File(testWorkspace, "workspace/" + TEST_PROJECT_NAME + "/" + missingReportDir);
-        
+
         // Ensure that the report has been attached
         r.assertBuildStatus(Result.FAILURE, run);
         HtmlPublisherTarget.HTMLBuildAction report = run.getAction(HtmlPublisherTarget.HTMLBuildAction.class);
         assertNull("Report should be missing", report);
         r.assertLogContains("Specified HTML directory '" + missingReportDirFile + "' does not exist.", run);
     }
-    
-    @Test 
-    public void publishMissingReport_allowMissing() throws Exception {     
+
+    @Test
+    public void publishMissingReport_allowMissing() throws Exception {
         setupAndRunProject(new HtmlPublisherTarget("testReport", "testReportDirNonExistent", "index.html", "index",
                 false, false, true));
-        
+
         // Ensure that the report has been attached
         r.assertBuildStatus(Result.SUCCESS, run);
         HtmlPublisherTarget.HTMLBuildAction report = run.getAction(HtmlPublisherTarget.HTMLBuildAction.class);
         assertNull("Report should be missing", report);
     }
-    
+
     private void writeTestHTML(String fileName) throws Exception {
         // Prepare the test file
         if (!testReportDir.exists() && !testReportDir.mkdirs()) {
             fail("Cannot create a temporary directory for the test");
-        }     
+        }
         final File index = new File(testReportDir, fileName);
         BufferedWriter bw = new BufferedWriter(new PrintWriter(index, "UTF-8"));
         try {
@@ -166,9 +166,9 @@ public class PublishHTMLStepTest {
             bw.close();
         }
     }
-    
+
     private void setupAndRunProject(@NonNull HtmlPublisherTarget target) throws Exception {
-        
+
         // Test node for the workflow
         r.jenkins.addNode(new DumbSlave("slave", "dummy", testWorkspace.getPath(), "1",
                 Node.Mode.NORMAL, "", r.createComputerLauncher(null), RetentionStrategy.NOOP,
@@ -177,8 +177,8 @@ public class PublishHTMLStepTest {
         job = r.jenkins.createProject(WorkflowJob.class, TEST_PROJECT_NAME);
         job.setDefinition(new CpsFlowDefinition(""
                 + "node('slave') {\n"
-                + "  publishHTML(target: [allowMissing: " + target.getAllowMissing() + 
-                  ", keepAll: " + target.getKeepAll() + ", reportDir: '" + target.getReportDir() + 
+                + "  publishHTML(target: [allowMissing: " + target.getAllowMissing() +
+                  ", keepAll: " + target.getKeepAll() + ", reportDir: '" + target.getReportDir() +
                   "', reportFiles: '" + target.getReportFiles() + "', reportName: '" + target.getReportName() + "']) \n"
                 + "}", true));
         QueueTaskFuture<WorkflowRun> runFuture = job.scheduleBuild2(0, new Action[0]);
@@ -187,27 +187,27 @@ public class PublishHTMLStepTest {
     }
 
     private void configRoundTrip(String reportName, String reportDir, String reportFiles) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles,"index",
+        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, "index",
                 false, false, false));
     }
-    
-    private void configRoundTrip(String reportName, String reportDir, String reportFiles, 
+
+    private void configRoundTrip(String reportName, String reportDir, String reportFiles,
             boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles,"index",
+        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, "index",
                 keepAll, alwaysLinkToLastBuild, allowMissing));
     }
-     
+
     private void configRoundTrip(@NonNull HtmlPublisherTarget target) throws Exception {
         configRoundTrip(new PublishHTMLStep(target));
     }
-    
+
     private void configRoundTrip(@NonNull PublishHTMLStep step) throws Exception {
         FreeStyleProject p = r.createFreeStyleProject();
         p.getBuildersList().add(new StepBuilder(step));
         // workaround for eclipse compiler Ambiguous method call
         p.save();
         r.jenkins.reload();
-        
+
         FreeStyleProject reloaded = r.jenkins.getItemByFullName(p.getFullName(), FreeStyleProject.class);
         assertNotNull(reloaded);
         StepBuilder b = reloaded.getBuildersList().get(StepBuilder.class);
@@ -215,7 +215,7 @@ public class PublishHTMLStepTest {
         Step after = b.s;
         assertNotNull(after);
         assertEquals(step.getClass(), after.getClass());
-        assertEquals("Initial and reloaded target configurations differ", step.getTarget(), 
+        assertEquals("Initial and reloaded target configurations differ", step.getTarget(),
                 ((PublishHTMLStep)after).getTarget());
     }
 }
