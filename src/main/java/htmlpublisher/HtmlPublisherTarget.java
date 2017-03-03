@@ -2,6 +2,7 @@ package htmlpublisher;
 
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.AbstractItem;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Action;
@@ -412,11 +413,14 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     /**
-     *
-     * @return the pattern for including files
+     * @return the pattern for including files, default to all if no pattern specified
      */
     public String getIncludes() {
-        return includes;
+        if (Util.fixEmpty(includes) == null) {
+            return INCLUDE_ALL_PATTERN;
+        } else {
+            return includes;
+        }
     }
 
     /**
