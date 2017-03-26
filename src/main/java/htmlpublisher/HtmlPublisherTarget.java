@@ -84,7 +84,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     @Deprecated
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, "",keepAll, false, allowMissing);
+        this(reportName, reportDir, reportFiles, "", keepAll, false, allowMissing);
     }
 
     public String getReportTitles() {
