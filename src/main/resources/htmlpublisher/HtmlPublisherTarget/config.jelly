@@ -10,8 +10,8 @@
     <f:textbox default="index.html"/>
   </f:entry>
 
-    <f:entry field="reportTitles" title="${%reportTitles.title}">
-      <f:textbox default="index"/>
+   <f:entry field="reportTitles" title="${%reportTitles.title}">
+    <f:textbox />
     </f:entry>
 
 

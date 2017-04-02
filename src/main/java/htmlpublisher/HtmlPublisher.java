@@ -214,7 +214,7 @@ public class HtmlPublisher extends Recorder {
             String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
 
             String[] titles = null;
-            if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().indexOf(",") > 0) {
+            if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
                 titles = reportTarget.getReportTitles().trim().split(",");
             }
 
@@ -236,7 +236,7 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportName = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(report, titles, j) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportName, titles, j) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
