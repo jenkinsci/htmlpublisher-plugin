@@ -215,7 +215,7 @@ public class HtmlPublisher extends Recorder {
 
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
-                titles = reportTarget.getReportTitles().trim().split(",");
+                titles = reportTarget.getReportTitles().trim().split("\\s*,\\s*");
             }
 
             ArrayList<String> reports = new ArrayList<String>();
