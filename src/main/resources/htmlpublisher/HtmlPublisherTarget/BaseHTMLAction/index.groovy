@@ -29,14 +29,15 @@ def serveWrapper() {
     def matcher = legacyFile.text =~ /<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value="([^"]+)">([^<]+)<\/li>/
 
     def items = []
+    def itemsTitle = []
     while (matcher.find()) {
         items.add(matcher.group(1))
+        itemsTitle.add(matcher.group(2))
     }
 
     def idx = 1
     items.each { file ->
-        def reportName = file.contains(".") ? file.substring(0, file.indexOf(".")) : file
-        li(reportName, id: "tab${idx}", class: "unselected", onclick: "updateBody('tab${idx}')", value: file.trim())
+        li(itemsTitle[idx-1], id: "tab${idx}", class: "unselected", onclick: "updateBody('tab${idx}')", value: file.trim())
         idx++
     }
 

@@ -57,6 +57,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     private final boolean alwaysLinkToLastBuild;
 
+    private String reportTitles;
     /**
      * If true, archive reports for all successful builds, otherwise only the most recent.
      */
@@ -79,11 +80,38 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private static final String WRAPPER_NAME = "htmlpublisher-wrapper.html";
 
     /**
-     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}. 
+     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
     @Deprecated
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
+        this(reportName, reportDir, reportFiles, "", keepAll, false, allowMissing);
+    }
+
+    public String getReportTitles() {
+        return reportTitles;
+    }
+
+    /**
+     * Constructor.
+     * @param reportName Report name
+     * @param reportDir Source directory in the job workspace
+     * @param reportFiles Files to be published
+     * @param reportTitles Files Title to be published
+     * @param keepAll True if the report should be stored for all builds
+     * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
+     *      Otherwise, the latest successful one will be referenced
+     * @param allowMissing If true, blocks the build failure if the report is missing
+     * @since 1.4
+     */
+    @DataBoundConstructor
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles,String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+        this.reportName = reportName;
+        this.reportDir = reportDir;
+        this.reportFiles = reportFiles;
+        this.reportTitles = reportTitles;
+        this.keepAll = keepAll;
+        this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
+        this.allowMissing = allowMissing;
     }
 
     /**
@@ -97,7 +125,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @param allowMissing If true, blocks the build failure if the report is missing
      * @since 1.4
      */
-    @DataBoundConstructor
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = reportName;
         this.reportDir = reportDir;
@@ -110,6 +137,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public String getReportName() {
         return this.reportName;
     }
+
 
     public String getReportDir() {
         return this.reportDir;
@@ -140,7 +168,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public String getWrapperName() {
         return WRAPPER_NAME;
     }
-    
+
     public FilePath getArchiveTarget(Run build) {
         return new FilePath(this.keepAll ? getBuildArchiveDir(build) : getProjectArchiveDir(build.getParent()));
     }
@@ -245,7 +273,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected String getTitle() {
             return this.project.getDisplayName() + " html2";
         }
-        
+
         /**
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
@@ -276,12 +304,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
             this.build = build;
         }
-        
+
         @WithBridgeMethods(value = AbstractBuild.class, adapterMethod = "getAbstractBuildOwner")
         public final Run<?,?> getOwner() {
             return build;
         }
-        
+
         @Deprecated
         private final Object getAbstractBuildOwner(Run build, Class targetClass) {
             return build instanceof AbstractBuild ? (AbstractBuild) build : null;
@@ -299,9 +327,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         public HtmlPublisherTarget getHTMLTarget() {
             return actualHtmlPublisherTarget;
-        }      
+        }
     }
-    
+
     public class HTMLBuildAction extends BaseHTMLAction implements RunAction2 {
         private transient Run<?, ?> build;
 
@@ -311,7 +339,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             super(actualHtmlPublisherTarget);
             this.build = build;
         }
-        
+
         @WithBridgeMethods(value = AbstractBuild.class, castRequired = true)
         public final Run<?,?> getOwner() {
             return build;
@@ -326,7 +354,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected File dir() {
             return getBuildArchiveDir(this.build);
         }
-        
+
         /**
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
@@ -377,7 +405,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public Action getProjectAction(AbstractItem item) {
         return new HTMLAction(item, this);
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 5;

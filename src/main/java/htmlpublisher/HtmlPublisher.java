@@ -49,13 +49,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
 import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * Saves HTML reports for the project and publishes them.
- * 
+ *
  * @author Kohsuke Kawaguchi
  * @author Mike Rooney
  */
@@ -67,7 +68,7 @@ public class HtmlPublisher extends Recorder {
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
         this.reportTargets = reportTargets != null ? new ArrayList<HtmlPublisherTarget>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
     }
-    
+
     public ArrayList<HtmlPublisherTarget> getReportTargets() {
         return this.reportTargets;
     }
@@ -98,8 +99,8 @@ public class HtmlPublisher extends Recorder {
             java.io.IOException {
         return readFile(filePath, this.getClass());
     }
-    
-    public static ArrayList<String> readFile(String filePath, Class<?> publisherClass) 
+
+    public static ArrayList<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.FileNotFoundException, java.io.IOException {
         ArrayList<String> aList = new ArrayList<String>();
 
@@ -156,7 +157,7 @@ public class HtmlPublisher extends Recorder {
         }
         return input;
     }
-    
+
     protected static String resolveParametersInString(EnvVars envVars, TaskListener listener, String input) {
         try {
             return envVars.expand(input);
@@ -168,20 +169,20 @@ public class HtmlPublisher extends Recorder {
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) 
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException {
         return publishReports(build, build.getWorkspace(), launcher, listener, reportTargets, this.getClass());
     }
-    
+
     /**
      * Runs HTML the publishing operation for specified {@link HtmlPublisherTarget}s.
-     * @return False if the operation failed 
-     * @since TODO 
+     * @return False if the operation failed
+     * @since TODO
      */
     public static boolean publishReports(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener,
             List<HtmlPublisherTarget> reportTargets, Class<?> publisherClass) throws InterruptedException {
         listener.getLogger().println("[htmlpublisher] Archiving HTML reports...");
-        
+
         // Grab the contents of the header and footer as arrays
         ArrayList<String> headerLines;
         ArrayList<String> footerLines;
@@ -195,30 +196,36 @@ public class HtmlPublisher extends Recorder {
             e1.printStackTrace();
             return false;
         }
-        
+
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             ArrayList<String> reportLines = new ArrayList<String>(headerLines);
-            HtmlPublisherTarget reportTarget = reportTargets.get(i); 
+            HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
-            
+
             FilePath archiveDir = workspace.child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
-            
-            String levelString = keepAll ? "BUILD" : "PROJECT"; 
+
+            String levelString = keepAll ? "BUILD" : "PROJECT";
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
             // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
             String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+
+            String[] titles = null;
+            if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
+                titles = reportTarget.getReportTitles().trim().split("\\s*,\\s*");
+            }
+
             ArrayList<String> reports = new ArrayList<String>();
             for (int j=0; j < csvReports.length; j++) {
                 String report = csvReports[j];
                 report = report.trim();
-                
+
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.equals("")) {continue;}
-                
+
                 reports.add(report);
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
@@ -229,7 +236,7 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportName = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + reportName + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportName, titles, j) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
@@ -243,7 +250,7 @@ public class HtmlPublisher extends Recorder {
                 String jobUrl = hudsonUrl + job.getUrl();
                 reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + jobUrl + "\";</script>");
             }
-    
+
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
 
             try {
@@ -255,7 +262,7 @@ public class HtmlPublisher extends Recorder {
                     // We are only keeping one copy at the project level, so remove the old one.
                     targetDir.deleteRecursive();
                 }
-    
+
                 if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
                     listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
                     final Result buildResult = build.getResult();
@@ -292,6 +299,13 @@ public class HtmlPublisher extends Recorder {
         }
 
         return true;
+    }
+
+    private static String getTitle(String report, String[] titles, int j) {
+        if (titles != null && titles.length > j) {
+            return titles[j];
+        }
+        return report;
     }
 
     @Override

@@ -10,6 +10,11 @@
     <f:textbox default="index.html"/>
   </f:entry>
 
+   <f:entry field="reportTitles" title="${%reportTitles.title}">
+    <f:textbox />
+    </f:entry>
+
+
   <f:entry field="reportName" title="${%reportName.title}">
     <f:textbox default="HTML Report"/>
   </f:entry>
