@@ -4,13 +4,14 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.19</version>
+    <version>2.29</version>
     <relativePath />
   </parent>
   
   <properties>
     <jenkins.version>1.609.3</jenkins.version>
     <workflow.version>1.14.2</workflow.version>
+    <java.level>7</java.level>
   </properties>
   
   <licenses>
@@ -25,11 +26,12 @@
   <packaging>hpi</packaging>
   <version>1.14-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
+  <description>This plugin publishes HTML reports.</description>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
   <developers>
       <developer>
-          <id>mcrooney</id>
-          <name>Michael Rooney</name>
+          <id>r2b2_nz</id>
+          <name>Richard Bywater</name>
       </developer>
   </developers>
 
