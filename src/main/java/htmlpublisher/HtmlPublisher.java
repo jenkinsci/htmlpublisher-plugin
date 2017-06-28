@@ -263,7 +263,7 @@ public class HtmlPublisher extends Recorder {
                     targetDir.deleteRecursive();
                 }
 
-                if (archiveDir.copyRecursiveTo("**/*", targetDir) == 0 && !allowMissing) {
+                if (archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir) == 0 && !allowMissing) {
                     listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
                     final Result buildResult = build.getResult();
                     if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {

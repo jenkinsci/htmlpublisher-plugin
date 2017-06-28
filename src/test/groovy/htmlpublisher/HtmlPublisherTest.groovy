@@ -1,6 +1,11 @@
 package htmlpublisher
 
+import hudson.FilePath
+import hudson.model.AbstractBuild
+import hudson.model.BuildListener
+import hudson.Launcher
 import org.jvnet.hudson.test.HudsonTestCase
+import org.jvnet.hudson.test.TestBuilder
 
 /**
  *
@@ -26,4 +31,49 @@ public class HtmlPublisherTest extends HudsonTestCase {
         }
     }
 
+
+    public void testIncludes() {
+        def p = createFreeStyleProject("include_job");
+        def reportDir = "autogen"
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("tab1.html").write("hello", "UTF-8");
+                ws.child("tab2.html").write("hello", "UTF-8");
+                ws.child("dummy.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        //default behavior is include all
+        target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN)
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false);
+        String includes = "tab2.html"
+        target2.setIncludes(includes)
+        assertEquals(includes, target2.getIncludes());
+        def l = [target1, target2]
+        p.publishersList.add(new HtmlPublisher(l));
+        AbstractBuild build = buildAndAssertSuccess(p);
+        File base = new File(build.getRootDir(), "htmlreports");
+        def tab1Files = new File(base, "tab1").list()
+        def tab2Files = new File(base, "tab2").list()
+        // tab1 file copied all files
+        assertTrue(tab1Files.contains("dummy.html"))
+        assertTrue(tab1Files.contains("tab1.html"))
+        // tab2 should not include dummy
+        assertTrue(tab2Files.contains("tab2.html"))
+        assertFalse(tab2Files.contains("dummy.html"))
+    }
+
+    public void testDefaultIncludes() {
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
+        assertEquals(HtmlPublisherTarget.INCLUDE_ALL_PATTERN, target1.getIncludes());
+        target1.setIncludes(null);
+        assertEquals(HtmlPublisherTarget.INCLUDE_ALL_PATTERN, target1.getIncludes());
+        target1.setIncludes("hello");
+        assertEquals("hello", target1.getIncludes());
+        target1.setIncludes("");
+        assertEquals(HtmlPublisherTarget.INCLUDE_ALL_PATTERN, target1.getIncludes());
+    }
 }
