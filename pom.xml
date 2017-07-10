@@ -33,6 +33,10 @@
           <id>r2b2_nz</id>
           <name>Richard Bywater</name>
       </developer>
+      <developer>
+          <id>mcrooney</id>
+          <name>Michael Rooney</name>
+      </developer>
   </developers>
 
   <scm>
