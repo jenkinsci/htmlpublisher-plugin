@@ -1,39 +1,46 @@
 package htmlpublisher
 
 import hudson.FilePath
+import hudson.Launcher
 import hudson.model.AbstractBuild
 import hudson.model.BuildListener
-import hudson.Launcher
-import org.jvnet.hudson.test.HudsonTestCase
+import org.junit.Rule
+import org.junit.Test
+import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.TestBuilder
+
+import static org.junit.Assert.*
 
 /**
  *
  *
  * @author Kohsuke Kawaguchi
  */
-public class HtmlPublisherIntegrationTest extends HudsonTestCase {
+public class HtmlPublisherIntegrationTest {
+    @Rule public JenkinsRule j = new JenkinsRule();
+
     /**
      * Makes sure that the configuration survives the round trip.
      */
+    @Test
     public void testConfigRoundtrip() {
-        def p = createFreeStyleProject();
+        def p = j.createFreeStyleProject();
         def l = [new HtmlPublisherTarget("a", "b", "c", "", true, true, false), new HtmlPublisherTarget("", "", "", "", false, false, false)]
 
         p.publishersList.add(new HtmlPublisher(l));
-        submit(createWebClient().getPage(p, "configure").getFormByName("config"));
+        j.submit(j.createWebClient().getPage(p, "configure").getFormByName("config"));
 
         def r = p.publishersList.get(HtmlPublisher.class)
         assertEquals(2, r.reportTargets.size())
 
         (0..1).each {
-            assertEqualBeans(l[it], r.reportTargets[it], "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
+            j.assertEqualBeans(l[it], r.reportTargets[it], "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
         }
     }
 
-
+    @Test
     public void testIncludes() {
-        def p = createFreeStyleProject("include_job");
+        def p = j.createFreeStyleProject("include_job");
         def reportDir = "autogen"
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
@@ -54,7 +61,7 @@ public class HtmlPublisherIntegrationTest extends HudsonTestCase {
         assertEquals(includes, target2.getIncludes());
         def l = [target1, target2]
         p.publishersList.add(new HtmlPublisher(l));
-        AbstractBuild build = buildAndAssertSuccess(p);
+        AbstractBuild build = j.buildAndAssertSuccess(p);
         File base = new File(build.getRootDir(), "htmlreports");
         def tab1Files = new File(base, "tab1").list()
         def tab2Files = new File(base, "tab2").list()
