@@ -233,13 +233,13 @@ public class HtmlPublisher extends Recorder {
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
                 int end = report.lastIndexOf('.');
-                String reportName;
+                String reportFile;
                 if (end > 0) {
-                    reportName = report.substring(0, end);
+                    reportFile = report.substring(0, end);
                 } else {
-                    reportName = report;
+                    reportFile = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportName, titles, j) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportFile, titles, j) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.

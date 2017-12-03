@@ -111,7 +111,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles,String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
