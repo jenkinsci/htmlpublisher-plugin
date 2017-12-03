@@ -1,9 +1,11 @@
 package htmlpublisher
 
+import hudson.EnvVars
 import hudson.FilePath
 import hudson.Launcher
 import hudson.model.AbstractBuild
 import hudson.model.BuildListener
+import hudson.slaves.EnvironmentVariablesNodeProperty
 import org.junit.Rule
 import org.junit.Test
 import org.jvnet.hudson.test.JenkinsRule
@@ -71,6 +73,37 @@ public class HtmlPublisherIntegrationTest {
         // tab2 should not include dummy
         assertTrue(tab2Files.contains("tab2.html"))
         assertFalse(tab2Files.contains("dummy.html"))
+    }
+
+    @Test
+    public void testVariableExpansion() {
+        def p = j.createFreeStyleProject("variable_job");
+        addEnvironmentVariable("MYREPORTNAME", "reportname")
+        addEnvironmentVariable("MYREPORTFILES", "afile.html")
+        addEnvironmentVariable("MYREPORTTITLE", "A Title")
+        def reportDir = "autogen"
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "\${MYREPORTFILES}", "\${MYREPORTTITLE}", true, true, false,);
+        p.publishersList.add(new HtmlPublisher([target2]));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        File base = new File(build.getRootDir(), "htmlreports");
+        assertNotNull(new File(base, "reportname").list())
+        def tab2Files = new File(base, "reportname").list()
+        assertTrue(tab2Files.contains("afile.html"))
+    }
+
+    private void addEnvironmentVariable(String key, String value) {
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty()
+        EnvVars envVars = prop.getEnvVars();
+        envVars.put(key, value)
+        j.jenkins.getGlobalNodeProperties().add(prop)
     }
 
 
