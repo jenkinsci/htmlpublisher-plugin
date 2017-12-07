@@ -3,21 +3,13 @@ package htmlpublisher;
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.AbstractItem;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Action;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Run;
-import hudson.model.Descriptor;
+import hudson.model.*;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.InvisibleAction;
-import hudson.model.Job;
 
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 import javax.servlet.ServletException;
@@ -86,6 +78,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private String includes;
 
+    private transient String actualReportName;
+
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
@@ -140,7 +134,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         return this.reportName;
     }
 
-
     public String getReportDir() {
         return this.reportDir;
     }
@@ -162,9 +155,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public String getSanitizedName() {
-        String safeName = this.reportName;
-        safeName = safeName.replace(" ", "_");
-        return safeName;
+      return this.actualReportName != null ? sanitizeName(this.actualReportName) : sanitizeName(this.reportName);
     }
 
     public String getWrapperName() {
@@ -173,6 +164,14 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public FilePath getArchiveTarget(Run build) {
         return new FilePath(this.keepAll ? getBuildArchiveDir(build) : getProjectArchiveDir(build.getParent()));
+    }
+
+    public String getActualReportName() {
+        return actualReportName;
+    }
+
+    public void setActualReportName(String actualReportName) {
+        this.actualReportName = actualReportName;
     }
 
     /**
@@ -185,16 +184,38 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * Gets the directory where the HTML report is stored for the given build.
      */
     private File getBuildArchiveDir(Run run) {
-        return new File(new File(run.getRootDir(), "htmlreports"), this.getSanitizedName());
+        String reportName = "";
+
+        if (run != null) {
+            for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
+                if (a.getHTMLTarget().getReportName().equals(this.getReportName())) {
+                    reportName = sanitizeName(a.actualReportName);
+                }
+            }
+            // If we don't have a reportName here, then this is getting called as part of a build
+            if ("".equals(reportName)) {
+                reportName = this.getSanitizedName();
+            }
+        }
+        return new File(new File(run.getRootDir(), "htmlreports"), reportName);
+    }
+
+    private String sanitizeName(String actualReportName) {
+        return actualReportName.replace(" ", "_");
     }
 
     protected abstract class BaseHTMLAction implements Action {
-        private HtmlPublisherTarget actualHtmlPublisherTarget;
+        protected HtmlPublisherTarget actualHtmlPublisherTarget;
+
+        protected String actualReportName;
 
         protected transient AbstractItem project;
 
-        public BaseHTMLAction(HtmlPublisherTarget actualHtmlPublisherTarget) {
+        protected abstract String getReportName();
+
+        public BaseHTMLAction(HtmlPublisherTarget actualHtmlPublisherTarget, String actualReportName) {
             this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
+            this.actualReportName = actualReportName;
         }
 
         public String getUrlName() {
@@ -202,7 +223,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getDisplayName() {
-            String action = actualHtmlPublisherTarget.reportName;
+            String action = getReportName();
+
             return dir().exists() ? action : null;
         }
 
@@ -234,8 +256,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         private transient HTMLBuildAction actualBuildAction;
 
-        public HTMLAction(AbstractItem project, HtmlPublisherTarget actualHtmlPublisherTarget) {
-            super(actualHtmlPublisherTarget);
+        public HTMLAction(AbstractItem project, HtmlPublisherTarget actualHtmlPublisherTarget, String actualReportName) {
+            super(actualHtmlPublisherTarget, actualReportName);
             this.project = project;
         }
 
@@ -261,6 +283,28 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             }
 
             return getProjectArchiveDir(this.project);
+        }
+
+        protected String getReportName() {
+            final Job job = (Job) this.project;
+
+            Run run = getArchiveBuild(job);
+
+            if (run != null) {
+                for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
+                    if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
+                        return a.actualReportName;
+                    }
+                }
+
+                for (HTMLPublishedForProjectMarkerAction a : run.getActions(HTMLPublishedForProjectMarkerAction.class)) {
+                    if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
+                        return a.actualReportName;
+                    }
+                }
+            }
+
+            return actualReportName;
         }
 
         private Run getArchiveBuild(@Nonnull Job job) {
@@ -301,10 +345,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public static class HTMLPublishedForProjectMarkerAction extends InvisibleAction implements RunAction2 {
         private transient Run<?, ?> build;
         private final HtmlPublisherTarget actualHtmlPublisherTarget;
+        private String actualReportName;
 
-        public HTMLPublishedForProjectMarkerAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
+        public HTMLPublishedForProjectMarkerAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget, String actualReportName) {
             this.actualHtmlPublisherTarget = actualHtmlPublisherTarget;
             this.build = build;
+            this.actualReportName = actualReportName;
         }
 
         @WithBridgeMethods(value = AbstractBuild.class, adapterMethod = "getAbstractBuildOwner")
@@ -337,8 +383,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         private String wrapperChecksum;
 
-        public HTMLBuildAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget) {
-            super(actualHtmlPublisherTarget);
+        public HTMLBuildAction(Run<?, ?> build, HtmlPublisherTarget actualHtmlPublisherTarget, String actualReportName) {
+            super(actualHtmlPublisherTarget, actualReportName);
             this.build = build;
         }
 
@@ -355,6 +401,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         @Override
         protected File dir() {
             return getBuildArchiveDir(this.build);
+        }
+
+        protected String getReportName() {
+            return this.actualReportName;
         }
 
         /**
@@ -396,16 +446,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     /* package */ void handleAction(Run<?, ?> build, String checksum) {
         // Add build action, if coverage is recorded for each build
         if (this.keepAll) {
-            HTMLBuildAction a = new HTMLBuildAction(build, this);
+            HTMLBuildAction a = new HTMLBuildAction(build, this, this.actualReportName);
             a.setWrapperChecksum(checksum);
             build.addAction(a);
         } else { // Othwewise we add a hidden marker
-            build.addAction(new HTMLPublishedForProjectMarkerAction(build, this));
+            build.addAction(new HTMLPublishedForProjectMarkerAction(build, this, this.actualReportName));
         }
     }
 
     public Action getProjectAction(AbstractItem item) {
-        return new HTMLAction(item, this);
+        return new HTMLAction(item, this, this.actualReportName);
     }
 
     /**
@@ -449,6 +499,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         hash = 97 * hash + (this.alwaysLinkToLastBuild ? 1 : 0);
         hash = 97 * hash + (this.keepAll ? 1 : 0);
         hash = 97 * hash + (this.allowMissing ? 1 : 0);
+        hash = 97 * hash + (this.actualReportName != null ? this.actualReportName.hashCode() : 0);
         return hash;
     }
 
@@ -477,6 +528,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return false;
         }
         if (this.allowMissing != other.allowMissing) {
+            return false;
+        }
+        if ((this.actualReportName == null) ? (other.actualReportName != null) : !this.actualReportName.equals(other.actualReportName)) {
             return false;
         }
         return true;

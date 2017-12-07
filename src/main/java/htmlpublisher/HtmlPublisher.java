@@ -204,6 +204,8 @@ public class HtmlPublisher extends Recorder {
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
 
+            reportTarget.setActualReportName(resolveParametersInString(build, listener, reportTarget.getReportName()));
+
             FilePath archiveDir = workspace.child(resolveParametersInString(build, listener, reportTarget.getReportDir()));
             FilePath targetDir = reportTarget.getArchiveTarget(build);
 
