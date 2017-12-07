@@ -186,17 +186,17 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private File getBuildArchiveDir(Run run) {
         String reportName = "";
 
-        if (run != null) {
-            for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
-                if (a.getHTMLTarget().getReportName().equals(this.getReportName())) {
-                    reportName = sanitizeName(a.actualReportName);
-                }
-            }
-            // If we don't have a reportName here, then this is getting called as part of a build
-            if ("".equals(reportName)) {
-                reportName = this.getSanitizedName();
+        for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
+            if (a.getHTMLTarget().getReportName().equals(this.getReportName())) {
+                reportName = sanitizeName(a.actualReportName);
             }
         }
+
+        // If we don't have a reportName here, then this is getting called as part of a build
+        if ("".equals(reportName)) {
+            reportName = this.getSanitizedName();
+        }
+
         return new File(new File(run.getRootDir(), "htmlreports"), reportName);
     }
 
