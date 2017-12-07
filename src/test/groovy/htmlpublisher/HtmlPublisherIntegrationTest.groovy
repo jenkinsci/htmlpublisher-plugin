@@ -1,39 +1,48 @@
 package htmlpublisher
 
+import hudson.EnvVars
 import hudson.FilePath
+import hudson.Launcher
 import hudson.model.AbstractBuild
 import hudson.model.BuildListener
-import hudson.Launcher
-import org.jvnet.hudson.test.HudsonTestCase
+import hudson.slaves.EnvironmentVariablesNodeProperty
+import org.junit.Rule
+import org.junit.Test
+import org.jvnet.hudson.test.JenkinsRule
 import org.jvnet.hudson.test.TestBuilder
+
+import static org.junit.Assert.*
 
 /**
  *
  *
  * @author Kohsuke Kawaguchi
  */
-public class HtmlPublisherIntegrationTest extends HudsonTestCase {
+public class HtmlPublisherIntegrationTest {
+    @Rule public JenkinsRule j = new JenkinsRule();
+
     /**
      * Makes sure that the configuration survives the round trip.
      */
+    @Test
     public void testConfigRoundtrip() {
-        def p = createFreeStyleProject();
+        def p = j.createFreeStyleProject();
         def l = [new HtmlPublisherTarget("a", "b", "c", "", true, true, false), new HtmlPublisherTarget("", "", "", "", false, false, false)]
 
         p.publishersList.add(new HtmlPublisher(l));
-        submit(createWebClient().getPage(p, "configure").getFormByName("config"));
+        j.submit(j.createWebClient().getPage(p, "configure").getFormByName("config"));
 
         def r = p.publishersList.get(HtmlPublisher.class)
         assertEquals(2, r.reportTargets.size())
 
         (0..1).each {
-            assertEqualBeans(l[it], r.reportTargets[it], "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
+            j.assertEqualBeans(l[it], r.reportTargets[it], "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
         }
     }
 
-
+    @Test
     public void testIncludes() {
-        def p = createFreeStyleProject("include_job");
+        def p = j.createFreeStyleProject("include_job");
         def reportDir = "autogen"
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
@@ -54,7 +63,7 @@ public class HtmlPublisherIntegrationTest extends HudsonTestCase {
         assertEquals(includes, target2.getIncludes());
         def l = [target1, target2]
         p.publishersList.add(new HtmlPublisher(l));
-        AbstractBuild build = buildAndAssertSuccess(p);
+        AbstractBuild build = j.buildAndAssertSuccess(p);
         File base = new File(build.getRootDir(), "htmlreports");
         def tab1Files = new File(base, "tab1").list()
         def tab2Files = new File(base, "tab2").list()
@@ -64,6 +73,37 @@ public class HtmlPublisherIntegrationTest extends HudsonTestCase {
         // tab2 should not include dummy
         assertTrue(tab2Files.contains("tab2.html"))
         assertFalse(tab2Files.contains("dummy.html"))
+    }
+
+    @Test
+    public void testVariableExpansion() {
+        def p = j.createFreeStyleProject("variable_job");
+        addEnvironmentVariable("MYREPORTNAME", "reportname")
+        addEnvironmentVariable("MYREPORTFILES", "afile.html")
+        addEnvironmentVariable("MYREPORTTITLE", "A Title")
+        def reportDir = "autogen"
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "\${MYREPORTFILES}", "\${MYREPORTTITLE}", true, true, false,);
+        p.publishersList.add(new HtmlPublisher([target2]));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        File base = new File(build.getRootDir(), "htmlreports");
+        assertNotNull(new File(base, "reportname").list())
+        def tab2Files = new File(base, "reportname").list()
+        assertTrue(tab2Files.contains("afile.html"))
+    }
+
+    private void addEnvironmentVariable(String key, String value) {
+        EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty()
+        EnvVars envVars = prop.getEnvVars();
+        envVars.put(key, value)
+        j.jenkins.getGlobalNodeProperties().add(prop)
     }
 
 
