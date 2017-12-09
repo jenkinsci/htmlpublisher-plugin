@@ -149,12 +149,16 @@ public class HtmlPublisher extends Recorder {
     }
 
     protected static String resolveParametersInString(Run<?, ?> build, TaskListener listener, String input) {
-        try {
-            return build.getEnvironment(listener).expand(input);
-        } catch (Exception e) {
-            listener.getLogger().println("Failed to resolve parameters in string \""+
-            input+"\" due to following error:\n"+e.getMessage());
+        if (build instanceof AbstractBuild) {
+            try {
+                return build.getEnvironment(listener).expand(input);
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to resolve parameters in string \"" +
+                        input + "\" due to following error:\n" + e.getMessage());
+            }
         }
+
+        // If not an AbstractBuild or we don't have an expanded value, just return the input as is
         return input;
     }
 
