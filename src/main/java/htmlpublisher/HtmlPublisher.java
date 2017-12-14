@@ -156,6 +156,21 @@ public class HtmlPublisher extends Recorder {
                 listener.getLogger().println("Failed to resolve parameters in string \"" +
                         input + "\" due to following error:\n" + e.getMessage());
             }
+        } else {
+            if (input.matches("\\$\\{.*\\}")) {
+                listener.getLogger().println("***************");
+                listener.getLogger().println("*** WARNING ***");
+                listener.getLogger().println("***************");
+                listener.getLogger().print("You appear to be relying on the HTML Publisher plugin to resolve variables in a Pipeline build. ");
+                listener.getLogger().print("This is not considered best practice and will be removed in a future release. ");
+                listener.getLogger().println("Please use a Groovy mechanism to evaluate the string.");
+            }
+            try {
+                return build.getEnvironment(listener).expand(input);
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to resolve parameters in string \"" +
+                        input + "\" due to following error:\n" + e.getMessage());
+            }
         }
 
         // If not an AbstractBuild or we don't have an expanded value, just return the input as is
