@@ -149,12 +149,31 @@ public class HtmlPublisher extends Recorder {
     }
 
     protected static String resolveParametersInString(Run<?, ?> build, TaskListener listener, String input) {
-        try {
-            return build.getEnvironment(listener).expand(input);
-        } catch (Exception e) {
-            listener.getLogger().println("Failed to resolve parameters in string \""+
-            input+"\" due to following error:\n"+e.getMessage());
+        if (build instanceof AbstractBuild) {
+            try {
+                return build.getEnvironment(listener).expand(input);
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to resolve parameters in string \"" +
+                        input + "\" due to following error:\n" + e.getMessage());
+            }
+        } else {
+            if (input.matches("\\$\\{.*\\}")) {
+                listener.getLogger().println("***************");
+                listener.getLogger().println("*** WARNING ***");
+                listener.getLogger().println("***************");
+                listener.getLogger().print("You appear to be relying on the HTML Publisher plugin to resolve variables in a Pipeline build. ");
+                listener.getLogger().print("This is not considered best practice and will be removed in a future release. ");
+                listener.getLogger().println("Please use a Groovy mechanism to evaluate the string.");
+            }
+            try {
+                return build.getEnvironment(listener).expand(input);
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to resolve parameters in string \"" +
+                        input + "\" due to following error:\n" + e.getMessage());
+            }
         }
+
+        // If not an AbstractBuild or we don't have an expanded value, just return the input as is
         return input;
     }
 
@@ -216,6 +235,9 @@ public class HtmlPublisher extends Recorder {
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
                 titles = reportTarget.getReportTitles().trim().split("\\s*,\\s*");
+                for (int j = 0; j < titles.length; j++) {
+                    titles[j] = resolveParametersInString(build, listener, titles[j]);
+                }
             }
 
             ArrayList<String> reports = new ArrayList<String>();
@@ -230,13 +252,13 @@ public class HtmlPublisher extends Recorder {
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
                 int end = report.lastIndexOf('.');
-                String reportName;
+                String reportFile;
                 if (end > 0) {
-                    reportName = report.substring(0, end);
+                    reportFile = report.substring(0, end);
                 } else {
-                    reportName = report;
+                    reportFile = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportName, titles, j) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportFile, titles, j) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.

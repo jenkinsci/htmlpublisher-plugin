@@ -34,23 +34,25 @@ import hudson.model.queue.QueueTaskFuture;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.RetentionStrategy;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collections;
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepConfigTester.StepBuilder;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collections;
+
+import static org.junit.Assert.*;
 
 public class PublishHTMLStepTest {
 
@@ -84,6 +86,30 @@ public class PublishHTMLStepTest {
         configRoundTrip("Report", "archive", "index.html", true, false, false);
         configRoundTrip("Report", "archive", "index.html", false, true, false);
         configRoundTrip("Report", "archive", "index.html", false, false, true);
+    }
+
+    @Test
+    public void testDeprecationWarningDisplayedWhenTryingToResolveParameters() throws Exception {
+        writeTestHTML("index.html");
+        final HtmlPublisherTarget target = new HtmlPublisherTarget
+                ("testReport", TEST_REPORT_DIR, "${TEST}", "", false, false, false);
+        setupAndRunProject(target);
+
+        // Ensure that the report has been attached properly
+        r.assertBuildStatus(Result.SUCCESS, run);
+        r.assertLogContains("*** WARNING ***", run);
+    }
+
+    @Test
+    public void testDeprecationWarningNotDisplayedWhenNotTryingToResolveParameters() throws Exception {
+        writeTestHTML("index.html");
+        final HtmlPublisherTarget target = new HtmlPublisherTarget
+                ("testReport", TEST_REPORT_DIR, "test", "", false, false, false);
+        setupAndRunProject(target);
+
+        // Ensure that the report has been attached properly
+        r.assertBuildStatus(Result.SUCCESS, run);
+        r.assertLogNotContains("*** WARNING ***", run);
     }
 
     @Test
