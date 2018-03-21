@@ -14,6 +14,7 @@ import org.jvnet.hudson.test.TestBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -110,6 +111,36 @@ public class HtmlPublisherIntegrationTest {
         assertTrue(tab2Files.contains("afile.html"));
     }
 
+    
+	@Test
+	public void testWithWildcardPatterns() throws Exception {
+		FreeStyleProject p = j.createFreeStyleProject("variable_job");
+		final String reportDir = "autogen";
+		p.getBuildersList().add(new TestBuilder() {
+			public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+					throws InterruptedException, IOException {
+				FilePath ws = build.getWorkspace().child(reportDir);
+				ws.child("nested1").child("aReportDir").child("nested").child("afile.html").write("hello", "UTF-8");
+				ws.child("notincluded").child("afile.html").write("hello", "UTF-8");
+				ws.child("otherDir").child("afile.html").write("hello", "UTF-8");
+				return true;
+			}
+		});
+		HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir,
+				"**/aReportDir/*/afile.html, **/otherDir/afile.html", "A title", true, true, false);
+		List<HtmlPublisherTarget> targets = new ArrayList<>();
+		targets.add(target2);
+		p.getPublishersList().add(new HtmlPublisher(targets));
+		AbstractBuild build = j.buildAndAssertSuccess(p);
+		File wrapperFile = new File(build.getRootDir(), "htmlreports/reportname/htmlpublisher-wrapper.html");
+		assertTrue(wrapperFile.exists());
+		String content = new String(Files.readAllBytes(wrapperFile.toPath()));
+		assertTrue(content.contains("nested1/aReportDir/nested/afile.html"));
+		assertTrue(content.contains("otherDir/afile.html"));
+		assertFalse(content.contains("notincluded/afile.html"));
+
+	}
+    
     private void addEnvironmentVariable(String key, String value) {
         EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
         EnvVars envVars = prop.getEnvVars();

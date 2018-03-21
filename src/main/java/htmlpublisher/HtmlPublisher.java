@@ -46,11 +46,14 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import jenkins.model.Jenkins;
+
+import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -229,8 +232,17 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT";
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
-            // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+			// Index files might be a list of ant patters, e.g. "**/*index.html, **/*otherFile.html"
+			// So split them and search for files within the archive directory that match that pattern
+			List<String> csvReports = new ArrayList<>();
+			File archiveDirFile = new File(archiveDir.getRemote());
+			if (archiveDirFile.exists()) {
+				String[] splittedPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+				for (String pattern : splittedPatterns) {
+					FileSet fs = Util.createFileSet(archiveDirFile, pattern);
+					csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
+				}
+			}
 
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
@@ -241,10 +253,13 @@ public class HtmlPublisher extends Recorder {
             }
 
             ArrayList<String> reports = new ArrayList<String>();
-            for (int j=0; j < csvReports.length; j++) {
-                String report = csvReports[j];
+            for (int j=0; j < csvReports.size(); j++) {
+                String report = csvReports.get(j);
                 report = report.trim();
-
+                // On windows file paths contains back slashes, but
+                // in the HTML file we do not want them, so replace them with forward slash
+                report = report.replace("\\", "/");
+	
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.equals("")) {continue;}
 
