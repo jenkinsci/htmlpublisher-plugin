@@ -1,5 +1,6 @@
 package htmlpublisher;
 
+import com.google.common.base.Charsets;
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import hudson.FilePath;
 import hudson.Util;
@@ -18,12 +19,15 @@ import hudson.model.Job;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
 import javax.servlet.ServletException;
 
 import hudson.util.HttpResponses;
 import jenkins.model.RunAction2;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -161,10 +165,31 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
            return this.allowMissing;
     }
 
-    public String getSanitizedName() {
+    /**
+     * Actually not safe, this allowed directory traversal (SECURITY-784).
+     * @return
+     */
+    private String getLegacySanitizedName() {
         String safeName = this.reportName;
         safeName = safeName.replace(" ", "_");
         return safeName;
+    }
+
+    public String getSanitizedName() {
+        return sanitizeReportName(this.reportName);
+    }
+
+    @Restricted(NoExternalUse.class)
+    public static String sanitizeReportName(String reportName) {
+        Pattern p = Pattern.compile("[^a-zA-Z0-9-]");
+        Matcher m = p.matcher(reportName);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String match = m.group();
+            m.appendReplacement(sb, "_" + Hex.encodeHexString(match.getBytes(Charsets.UTF_8)));
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     public String getWrapperName() {
@@ -179,13 +204,22 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * Gets the directory where the HTML report is stored for the given project.
      */
     private File getProjectArchiveDir(AbstractItem project) {
-        return new File(new File(project.getRootDir(), "htmlreports"), this.getSanitizedName());
+        return getProjectArchiveDir(project, getSanitizedName());
+    }
+
+    private File getProjectArchiveDir(AbstractItem project, String dirName) {
+        return new File(new File(project.getRootDir(), "htmlreports"), dirName);
     }
     /**
      * Gets the directory where the HTML report is stored for the given build.
      */
     private File getBuildArchiveDir(Run run) {
-        return new File(new File(run.getRootDir(), "htmlreports"), this.getSanitizedName());
+        return getBuildArchiveDir(run, getSanitizedName());
+    }
+
+
+    private File getBuildArchiveDir(Run run, String dirName) {
+        return new File(new File(run.getRootDir(), "htmlreports"), dirName);
     }
 
     protected abstract class BaseHTMLAction implements Action {
@@ -198,7 +232,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getUrlName() {
-            return actualHtmlPublisherTarget.getSanitizedName();
+            return dir().getName();
         }
 
         public String getDisplayName() {
@@ -249,6 +283,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 
+                    if (!javadocDir.exists()) {
+                        javadocDir = getBuildArchiveDir(run, getLegacySanitizedName());
+                    }
+                   // TODO not sure about this change
+
                     if (javadocDir.exists()) {
                         for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
                             if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
@@ -260,7 +299,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 }
             }
 
-            return getProjectArchiveDir(this.project);
+            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
+            File projectArchiveDir = getProjectArchiveDir(this.project);
+            if (projectArchiveDir.exists()) {
+                return projectArchiveDir;
+            }
+            File legacyProjectArchiveDir = getProjectArchiveDir(this.project, getLegacySanitizedName());
+            if (legacyProjectArchiveDir.exists()) {
+                return legacyProjectArchiveDir;
+            }
+            return projectArchiveDir;
         }
 
         private Run getArchiveBuild(@Nonnull Job job) {
@@ -354,7 +402,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         protected File dir() {
-            return getBuildArchiveDir(this.build);
+            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
+            File buildArchiveDir = getBuildArchiveDir(this.build);
+            if (buildArchiveDir.exists()) {
+                return buildArchiveDir;
+            }
+            File legacyBuildArchiveDir = getBuildArchiveDir(this.build, getLegacySanitizedName());
+            if (legacyBuildArchiveDir.exists()) {
+                return legacyBuildArchiveDir;
+            }
+            return buildArchiveDir;
         }
 
         /**
