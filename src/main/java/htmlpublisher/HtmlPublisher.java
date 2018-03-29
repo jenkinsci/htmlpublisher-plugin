@@ -232,17 +232,17 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT";
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
-			// Index files might be a list of ant patters, e.g. "**/*index.html, **/*otherFile.html"
-			// So split them and search for files within the archive directory that match that pattern
-			List<String> csvReports = new ArrayList<>();
-			File archiveDirFile = new File(archiveDir.getRemote());
-			if (archiveDirFile.exists()) {
-				String[] splittedPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-				for (String pattern : splittedPatterns) {
-					FileSet fs = Util.createFileSet(archiveDirFile, pattern);
-					csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
-				}
-			}
+            // Index files might be a list of ant patters, e.g. "**/*index.html,**/*otherFile.html"
+            // So split them and search for files within the archive directory that match that pattern
+            List<String> csvReports = new ArrayList<>();
+            File archiveDirFile = new File(archiveDir.getRemote());
+            if (archiveDirFile.exists()) {
+                String[] splittedPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+                for (String pattern : splittedPatterns) {
+                    FileSet fs = Util.createFileSet(archiveDirFile, pattern);
+                    csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
+                }
+            }
 
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
