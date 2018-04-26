@@ -54,6 +54,8 @@ import jenkins.model.Jenkins;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+import org.apache.tools.ant.types.FileSet;
+
 /**
  * Saves HTML reports for the project and publishes them.
  *
@@ -230,7 +232,17 @@ public class HtmlPublisher extends Recorder {
             listener.getLogger().println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
             // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
-            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+            String reportFiles = resolveParametersInString(build, listener, reportTarget.getReportFiles());
+            String[] csvReports = {};
+            if (reportFiles.startsWith("[pattern]")) {
+            	File archiveDirFile = new File(archiveDir.getRemote());
+                if (archiveDirFile.exists()) {
+                    FileSet fs = Util.createFileSet(archiveDirFile, reportFiles.replaceFirst("\\[pattern\\]", ""));
+                    csvReports = fs.getDirectoryScanner().getIncludedFiles();
+                }
+            } else {
+            	csvReports = reportFiles.split(",");
+            }
 
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
