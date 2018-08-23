@@ -181,7 +181,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     @Restricted(NoExternalUse.class)
     public static String sanitizeReportName(String reportName) {
-        Pattern p = Pattern.compile("[^a-zA-Z0-9-]");
+        Pattern p = Pattern.compile("[^a-zA-Z0-9-_]");
         Matcher m = p.matcher(reportName);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
