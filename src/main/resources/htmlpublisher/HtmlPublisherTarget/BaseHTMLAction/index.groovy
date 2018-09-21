@@ -42,8 +42,8 @@ def serveWrapper() {
     }
 
     // TODO replace unnecessary JS usage by properly integrating header.html/footer.html in this groovy view
-    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to ${my.project.displayName}\";</script>")
-    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"${rootURL}/${my.project.url}\";</script>")
+    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to ${my.backToName}\";</script>")
+    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"${rootURL}/${my.backToUrl}\";</script>")
     raw("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/${my.getHTMLTarget().sanitizedName}.zip\";</script>")
 
     raw(footer)
