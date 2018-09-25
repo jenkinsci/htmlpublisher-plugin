@@ -1,5 +1,6 @@
 package htmlpublisher;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -23,5 +24,15 @@ public class HtmlPublisherTest {
         assertEquals(target.getReportName(), "tab1");
         assertEquals(target.getReportDir(), "target");
         assertEquals(target.getReportFiles(), "tab1.html");
+    }
+
+    @Test
+    public void testEscapeUnderscores() {
+        // test underscores escaped when requested
+        assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", true), HtmlPublisherTarget.sanitizeReportName("foo_5fbar", false));
+
+        // test underscores not escaped when not requested
+        assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
+
     }
 }

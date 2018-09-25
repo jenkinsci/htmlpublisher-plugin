@@ -62,15 +62,15 @@ public class Security784Test {
         // start with general 'sanity' requirements
 
         // failed in previous releases
-        Assert.assertNotEquals(HtmlPublisherTarget.sanitizeReportName("foo bar"), HtmlPublisherTarget.sanitizeReportName("foo_bar"));
+        Assert.assertNotEquals(HtmlPublisherTarget.sanitizeReportName("foo bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
 
         // don't collapse repeated chars
-        Assert.assertNotEquals(HtmlPublisherTarget.sanitizeReportName("foo!bar"), HtmlPublisherTarget.sanitizeReportName("foo!!!!bar"));
+        Assert.assertNotEquals(HtmlPublisherTarget.sanitizeReportName("foo!bar", false), HtmlPublisherTarget.sanitizeReportName("foo!!!!bar", false));
 
         // now be specific -- we escape non alphanumeric UTF-8 chars to their hex code with a '_' prefix
-        Assert.assertEquals("foo_21bar", HtmlPublisherTarget.sanitizeReportName("foo!bar"));
-        Assert.assertEquals("foo_20bar", HtmlPublisherTarget.sanitizeReportName("foo bar"));
-        Assert.assertEquals("_20foo_20bar_20", HtmlPublisherTarget.sanitizeReportName(" foo bar "));
-        Assert.assertEquals("_e5b79d_e58fa3", HtmlPublisherTarget.sanitizeReportName("川口")); // U+5DDD U+53E3
+        Assert.assertEquals("foo_21bar", HtmlPublisherTarget.sanitizeReportName("foo!bar", false));
+        Assert.assertEquals("foo_20bar", HtmlPublisherTarget.sanitizeReportName("foo bar", false));
+        Assert.assertEquals("_20foo_20bar_20", HtmlPublisherTarget.sanitizeReportName(" foo bar ", false));
+        Assert.assertEquals("_e5b79d_e58fa3", HtmlPublisherTarget.sanitizeReportName("川口", false)); // U+5DDD U+53E3
     }
 }

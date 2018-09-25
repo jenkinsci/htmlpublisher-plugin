@@ -90,6 +90,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private String includes;
 
+    private final Boolean escapeUnderscores;
+
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
@@ -115,7 +117,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing, boolean escapeUnderscores) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
@@ -123,6 +125,23 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
+        this.escapeUnderscores = escapeUnderscores;
+    }
+
+    /**
+     * Constructor.
+     * @param reportName Report name
+     * @param reportDir Source directory in the job workspace
+     * @param reportFiles Files to be published
+     * @param reportTitles Files Title to be published
+     * @param keepAll True if the report should be stored for all builds
+     * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
+     *      Otherwise, the latest successful one will be referenced
+     * @param allowMissing If true, blocks the build failure if the report is missing
+     * @since 1.4
+     */
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+        this(reportName, reportDir, reportFiles, reportTitles, keepAll, alwaysLinkToLastBuild, allowMissing, true);
     }
 
     /**
@@ -165,6 +184,14 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
            return this.allowMissing;
     }
 
+    public boolean getEscapeUnderscores() {
+        if (this.escapeUnderscores == null) {
+            return true;
+        } else {
+            return this.escapeUnderscores;
+        }
+    }
+
     /**
      * Actually not safe, this allowed directory traversal (SECURITY-784).
      * @return
@@ -176,12 +203,17 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public String getSanitizedName() {
-        return sanitizeReportName(this.reportName);
+        return sanitizeReportName(this.reportName, this.escapeUnderscores);
     }
 
     @Restricted(NoExternalUse.class)
-    public static String sanitizeReportName(String reportName) {
-        Pattern p = Pattern.compile("[^a-zA-Z0-9-_]");
+    public static String sanitizeReportName(String reportName, boolean escapeUnderscores) {
+        Pattern p;
+        if (escapeUnderscores) {
+            p = Pattern.compile("[^a-zA-Z0-9-]");
+        } else {
+            p = Pattern.compile("[^a-zA-Z0-9-_]");
+        }
         Matcher m = p.matcher(reportName);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {

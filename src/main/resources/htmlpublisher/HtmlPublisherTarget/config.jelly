@@ -19,7 +19,7 @@
     <f:textbox default="HTML Report"/>
   </f:entry>
 
-  <f:advanced title="${%Publishing options}"> 
+  <f:advanced title="${%Publishing options}">
     <f:entry field="keepAll" title="${%keepAll.title}">
       <f:checkbox />
     </f:entry>
@@ -34,5 +34,8 @@
     <f:entry field="includes" title="${%reportFiles.includes}" description="${%reportFiles.includesHelp}">
       <f:textbox default="**/*"/>
     </f:entry>
+      <f:entry field="escapeUnderscores" title="${%escapeUnderscores.title}">
+        <f:checkbox default="true"/>
+      </f:entry>
   </f:advanced>
 </j:jelly>
