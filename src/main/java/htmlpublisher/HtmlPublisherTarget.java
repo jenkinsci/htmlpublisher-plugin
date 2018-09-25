@@ -203,7 +203,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public String getSanitizedName() {
-        return sanitizeReportName(this.reportName, this.escapeUnderscores);
+        return sanitizeReportName(this.reportName, getEscapeUnderscores());
     }
 
     @Restricted(NoExternalUse.class)
