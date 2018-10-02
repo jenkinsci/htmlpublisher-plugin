@@ -90,6 +90,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private String includes;
 
+    private Boolean escapeUnderscores;
+
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
@@ -165,6 +167,19 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
            return this.allowMissing;
     }
 
+    public boolean getEscapeUnderscores() {
+        if (this.escapeUnderscores == null) {
+            return true;
+        } else {
+            return this.escapeUnderscores;
+        }
+    }
+
+    @DataBoundSetter
+    public void setEscapeUnderscores(boolean escapeUnderscores) {
+        this.escapeUnderscores = escapeUnderscores;
+    }
+
     /**
      * Actually not safe, this allowed directory traversal (SECURITY-784).
      * @return
@@ -176,12 +191,17 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public String getSanitizedName() {
-        return sanitizeReportName(this.reportName);
+        return sanitizeReportName(this.reportName, getEscapeUnderscores());
     }
 
     @Restricted(NoExternalUse.class)
-    public static String sanitizeReportName(String reportName) {
-        Pattern p = Pattern.compile("[^a-zA-Z0-9-]");
+    public static String sanitizeReportName(String reportName, boolean escapeUnderscores) {
+        Pattern p;
+        if (escapeUnderscores) {
+            p = Pattern.compile("[^a-zA-Z0-9-]");
+        } else {
+            p = Pattern.compile("[^a-zA-Z0-9-_]");
+        }
         Matcher m = p.matcher(reportName);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
