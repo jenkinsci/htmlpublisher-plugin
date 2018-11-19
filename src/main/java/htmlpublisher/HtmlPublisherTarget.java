@@ -117,11 +117,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
-        this.reportTitles = StringUtils.trim(reportTitles);
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
@@ -178,6 +177,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setEscapeUnderscores(boolean escapeUnderscores) {
         this.escapeUnderscores = escapeUnderscores;
+    }
+
+    @DataBoundSetter
+    public void setReportTitles(String reportTitles) {
+        this.reportTitles = StringUtils.trim(reportTitles);
     }
 
     /**
