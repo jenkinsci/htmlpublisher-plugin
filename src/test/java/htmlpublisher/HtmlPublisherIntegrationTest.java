@@ -34,8 +34,8 @@ public class HtmlPublisherIntegrationTest {
     public void testConfigRoundtrip() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject();
         HtmlPublisherTarget[] l = {
-                new HtmlPublisherTarget("a", "b", "c", "", true, true, false),
-                new HtmlPublisherTarget("", "", "", "", false, false, false)
+                new HtmlPublisherTarget("a", "b", "c", true, true, false),
+                new HtmlPublisherTarget("", "", "", false, false, false)
         };
 
         p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
@@ -99,7 +99,8 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "${MYREPORTFILES}", "${MYREPORTTITLE}", true, true, false );
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "${MYREPORTFILES}", true, true, false );
+        target2.setReportTitles("${MYREPORTTITLE}");
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target2);
         p.getPublishersList().add(new HtmlPublisher(targets));

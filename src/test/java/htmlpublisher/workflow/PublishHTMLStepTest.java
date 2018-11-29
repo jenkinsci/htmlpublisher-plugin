@@ -92,7 +92,7 @@ public class PublishHTMLStepTest {
     public void testDeprecationWarningDisplayedWhenTryingToResolveParameters() throws Exception {
         writeTestHTML("index.html");
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-                ("testReport", TEST_REPORT_DIR, "${TEST}", "", false, false, false);
+                ("testReport", TEST_REPORT_DIR, "${TEST}", false, false, false);
         setupAndRunProject(target);
 
         // Ensure that the report has been attached properly
@@ -104,7 +104,7 @@ public class PublishHTMLStepTest {
     public void testDeprecationWarningNotDisplayedWhenNotTryingToResolveParameters() throws Exception {
         writeTestHTML("index.html");
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-                ("testReport", TEST_REPORT_DIR, "test", "", false, false, false);
+                ("testReport", TEST_REPORT_DIR, "test", false, false, false);
         setupAndRunProject(target);
 
         // Ensure that the report has been attached properly
@@ -120,7 +120,7 @@ public class PublishHTMLStepTest {
 
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html", "", false, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html",  false, false, false);
         setupAndRunProject(target);
 
         // Ensure that the report has been attached properly
@@ -140,7 +140,8 @@ public class PublishHTMLStepTest {
 
         // Run the project
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", TEST_REPORT_DIR, "index.html", "index", true, false, false);
+            ("testReport", TEST_REPORT_DIR, "index.html", true, false, false);
+        target.setReportTitles("index");
         setupAndRunProject(target);
 
         // Ensure that the report has been attached properly
@@ -157,7 +158,8 @@ public class PublishHTMLStepTest {
     public void publishMissingReportFolder() throws Exception {
         final String missingReportDir = "testReportDirNonExistent";
         final HtmlPublisherTarget target = new HtmlPublisherTarget
-            ("testReport", missingReportDir, "index.html", "index", false, false, false);
+            ("testReport", missingReportDir, "index.html", false, false, false);
+        target.setReportTitles("index");
         setupAndRunProject(target);
         File missingReportDirFile = new File(testWorkspace, "workspace/" + TEST_PROJECT_NAME + "/" + missingReportDir);
 
@@ -170,8 +172,10 @@ public class PublishHTMLStepTest {
 
     @Test
     public void publishMissingReport_allowMissing() throws Exception {
-        setupAndRunProject(new HtmlPublisherTarget("testReport", "testReportDirNonExistent", "index.html", "index",
-                false, false, true));
+        final HtmlPublisherTarget target = new HtmlPublisherTarget
+                ("testReport", "testReportDirNonExistent", "index.html", false, false, true);
+        target.setReportTitles("index");
+        setupAndRunProject(target);
 
         // Ensure that the report has been attached
         r.assertBuildStatus(Result.SUCCESS, run);
@@ -213,14 +217,18 @@ public class PublishHTMLStepTest {
     }
 
     private void configRoundTrip(String reportName, String reportDir, String reportFiles) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, "index",
-                false, false, false));
+        final HtmlPublisherTarget target = new HtmlPublisherTarget
+                (reportName, reportDir, reportFiles, false, false, false);
+        target.setReportTitles("index");
+        configRoundTrip(target);
     }
 
     private void configRoundTrip(String reportName, String reportDir, String reportFiles,
             boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) throws Exception {
-        configRoundTrip(new HtmlPublisherTarget(reportName, reportDir, reportFiles, "index",
-                keepAll, alwaysLinkToLastBuild, allowMissing));
+        final HtmlPublisherTarget target = new HtmlPublisherTarget
+                (reportName, reportDir, reportFiles, false, false, false);
+        target.setReportTitles("index");
+        configRoundTrip(target);
     }
 
     private void configRoundTrip(@NonNull HtmlPublisherTarget target) throws Exception {
