@@ -93,11 +93,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private Boolean escapeUnderscores;
 
     /**
-     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
+     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
     @Deprecated
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, "", keepAll, false, allowMissing);
+        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
     }
 
     public String getReportTitles() {
@@ -109,7 +109,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @param reportName Report name
      * @param reportDir Source directory in the job workspace
      * @param reportFiles Files to be published
-     * @param reportTitles Files Title to be published
      * @param keepAll True if the report should be stored for all builds
      * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
      *      Otherwise, the latest successful one will be referenced
@@ -117,29 +116,13 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, String reportTitles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
-        this.reportTitles = StringUtils.trim(reportTitles);
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
-    }
-
-    /**
-     * Constructor.
-     * @param reportName Report name
-     * @param reportDir Source directory in the job workspace
-     * @param reportFiles Files to be published
-     * @param keepAll True if the report should be stored for all builds
-     * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
-     *      Otherwise, the latest successful one will be referenced
-     * @param allowMissing If true, blocks the build failure if the report is missing
-     * @since 1.4
-     */
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, null, keepAll, alwaysLinkToLastBuild, allowMissing);
     }
 
     public String getReportName() {
@@ -178,6 +161,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setEscapeUnderscores(boolean escapeUnderscores) {
         this.escapeUnderscores = escapeUnderscores;
+    }
+
+    @DataBoundSetter
+    public void setReportTitles(String reportTitles) {
+        this.reportTitles = StringUtils.trim(reportTitles);
     }
 
     /**
