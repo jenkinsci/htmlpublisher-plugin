@@ -66,7 +66,7 @@ public class HtmlPublisher extends Recorder {
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
-        this.reportTargets = reportTargets != null ? new ArrayList<HtmlPublisherTarget>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
+        this.reportTargets = reportTargets != null ? new ArrayList<>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
     }
 
     public ArrayList<HtmlPublisherTarget> getReportTargets() {
@@ -81,15 +81,12 @@ public class HtmlPublisher extends Recorder {
         MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
 
         //TODO: consider using UTF-8
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), Charset.defaultCharset()));
-        try {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), Charset.defaultCharset()))) {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i) + "\n";
                 bw.write(line);
                 sha1.update(line.getBytes("UTF-8"));
             }
-        } finally {
-            bw.close();
         }
 
         return Util.toHexString(sha1.digest());
@@ -102,7 +99,7 @@ public class HtmlPublisher extends Recorder {
 
     public static ArrayList<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.FileNotFoundException, java.io.IOException {
-        ArrayList<String> aList = new ArrayList<String>();
+        ArrayList<String> aList = new ArrayList<>();
 
         try {
             final InputStream is = publisherClass.getResourceAsStream(filePath);
@@ -112,7 +109,7 @@ public class HtmlPublisher extends Recorder {
                 try {
                     final BufferedReader br = new BufferedReader(r);
                     try {
-                        String line = null;
+                        String line;
                         while ((line = br.readLine()) != null) {
                             aList.add(line);
                         }
@@ -218,7 +215,7 @@ public class HtmlPublisher extends Recorder {
 
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
-            ArrayList<String> reportLines = new ArrayList<String>(headerLines);
+            ArrayList<String> reportLines = new ArrayList<>(headerLines);
             HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
@@ -240,7 +237,7 @@ public class HtmlPublisher extends Recorder {
                 }
             }
 
-            ArrayList<String> reports = new ArrayList<String>();
+            ArrayList<String> reports = new ArrayList<>();
             for (int j=0; j < csvReports.length; j++) {
                 String report = csvReports[j];
                 report = report.trim();
@@ -335,7 +332,7 @@ public class HtmlPublisher extends Recorder {
         if (this.reportTargets.isEmpty()) {
             return Collections.emptyList();
         } else {
-            ArrayList<Action> actions = new ArrayList<Action>();
+            ArrayList<Action> actions = new ArrayList<>();
             for (HtmlPublisherTarget target : this.reportTargets) {
                 actions.add(target.getProjectAction(project));
                 if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){

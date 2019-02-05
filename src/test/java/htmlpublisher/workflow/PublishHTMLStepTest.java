@@ -189,11 +189,8 @@ public class PublishHTMLStepTest {
             fail("Cannot create a temporary directory for the test");
         }
         final File index = new File(testReportDir, fileName);
-        BufferedWriter bw = new BufferedWriter(new PrintWriter(index, "UTF-8"));
-        try {
+        try (BufferedWriter bw = new BufferedWriter(new PrintWriter(index, "UTF-8"))) {
             bw.write("<html><head><title>Test page</title></head><body><p>Jenkins Rocks!</p></body></html>");
-        } finally {
-            bw.close();
         }
     }
 
