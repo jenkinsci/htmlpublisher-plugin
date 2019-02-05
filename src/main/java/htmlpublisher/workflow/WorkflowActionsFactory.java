@@ -38,7 +38,6 @@ import org.kohsuke.accmod.restrictions.DoNotUse;
 /**
  * Produces actions for workflow jobs.
  * @author Oleg Nenashev
- * @since TODO
  */
 @Restricted(DoNotUse.class)
 @Extension
