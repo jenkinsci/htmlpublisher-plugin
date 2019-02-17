@@ -1,41 +1,40 @@
 package htmlpublisher;
 
-import com.google.common.base.Charsets;
-import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
-import hudson.FilePath;
-import hudson.Util;
-import hudson.model.AbstractItem;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Action;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Run;
-import hudson.model.Descriptor;
-import hudson.Extension;
-import hudson.model.AbstractBuild;
-import hudson.model.InvisibleAction;
-import hudson.model.Job;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 
-import hudson.util.HttpResponses;
-import jenkins.model.RunAction2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
-
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.google.common.base.Charsets;
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
+
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.AbstractItem;
+import hudson.model.Action;
+import hudson.model.Descriptor;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.InvisibleAction;
+import hudson.model.Job;
+import hudson.model.ProminentProjectAction;
+import hudson.model.Run;
+import hudson.util.HttpResponses;
+import jenkins.model.RunAction2;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -269,7 +268,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          */
         public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
             DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "graph.gif", false);
-            if (req.getRestOfPath().equals("")) {
+            if (req.getRestOfPath().isEmpty()) {
                 throw HttpResponses.forwardToView(this, "index.jelly");
             }
             dbs.generateResponse(req, rsp, this);
@@ -343,7 +342,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         /**
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
-         * @since TODO
          */
         public @Nonnull HtmlPublisherTarget getHTMLTarget() {
             return HtmlPublisherTarget.this;
@@ -360,7 +358,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * Hidden action, which indicates the build has been published on the project level.
      * This action is not an instance of {@link BaseHTMLAction} , because we want to
      * avoid confusions with actions referring to the data.
-     * @since TODO
      */
     public static class HTMLPublishedForProjectMarkerAction extends InvisibleAction implements RunAction2 {
         private transient Run<?, ?> build;
@@ -443,7 +440,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         /**
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
-         * @since TODO
          */
         public @Nonnull HtmlPublisherTarget getHTMLTarget() {
             return HtmlPublisherTarget.this;
