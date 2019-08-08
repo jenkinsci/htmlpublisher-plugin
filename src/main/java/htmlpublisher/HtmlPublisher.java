@@ -334,7 +334,6 @@ public class HtmlPublisher extends Recorder {
                 e.printStackTrace();
             }
         }
-
         return true;
     }
 
