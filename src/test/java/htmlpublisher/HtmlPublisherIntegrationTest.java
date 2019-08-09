@@ -125,7 +125,7 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", "A title", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", true, true, false);
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target2);
         p.getPublishersList().add(new HtmlPublisher(targets));
