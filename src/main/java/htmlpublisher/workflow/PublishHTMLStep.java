@@ -33,7 +33,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 /**
  * Publishes HTML reports in Workflows.
  * @author Oleg Nenashev
- * @since TODO
  */
 public class PublishHTMLStep extends AbstractStepImpl {
     

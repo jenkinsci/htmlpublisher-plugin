@@ -38,7 +38,6 @@ import org.kohsuke.accmod.restrictions.DoNotUse;
 /**
  * Produces actions for workflow jobs.
  * @author Oleg Nenashev
- * @since TODO
  */
 @Restricted(DoNotUse.class)
 @Extension
@@ -51,7 +50,7 @@ public class WorkflowActionsFactory extends TransientActionFactory<Job> {
 
     @Override 
     public Collection<? extends Action> createFor(Job j) {
-        List<Action> actions = new LinkedList<Action>();
+        List<Action> actions = new LinkedList<>();
         if (j.getClass().getCanonicalName().startsWith("org.jenkinsci.plugins.workflow"))
         {
             final Run<?,?> r = j.getLastSuccessfulBuild();

@@ -23,6 +23,13 @@
  */
 package htmlpublisher.workflow;
 
+import java.util.Arrays;
+
+import javax.inject.Inject;
+
+import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
+import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
+
 import htmlpublisher.HtmlPublisher;
 import htmlpublisher.HtmlPublisherTarget;
 import hudson.AbortException;
@@ -30,17 +37,13 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import java.util.Arrays;
-import javax.inject.Inject;
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
 
 /**
  * Execution for {@link PublishHTMLStep}.
  * @author Oleg Nenashev
- * @since TODO
  */
 public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+    private static final long serialVersionUID = 1L;
     
     @StepContextParameter
     private transient TaskListener listener;
@@ -64,7 +67,7 @@ public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStep
             throw new AbortException("Cannot publish the report. Target is not specified");
         }
         
-        boolean res = HtmlPublisher.publishReports(build, ws, launcher, listener, 
+        boolean res = HtmlPublisher.publishReports(build, ws, listener, 
                 Arrays.asList(target), HtmlPublisher.class);
         if (!res) {
             throw new AbortException("Cannot publish HTML files");
@@ -72,5 +75,4 @@ public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStep
         return null;
     }
 
-    private static final long serialVersionUID = 1L;
 }
