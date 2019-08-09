@@ -239,8 +239,8 @@ public class HtmlPublisher extends Recorder {
             }
 
             List<String> reports = new ArrayList<>();
-            for (int j=0; j < csvReports.length; j++) {
-                String report = csvReports[j];
+            for (int j=0; j < csvReports.size(); j++) {
+                String report = csvReports.get(j);
                 report = report.trim();
                 // On windows file paths contains back slashes, but
                 // in the HTML file we do not want them, so replace them with forward slash
