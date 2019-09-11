@@ -219,13 +219,13 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT";
             logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
-            // Index files might be a list of ant patters, e.g. "**/*index.html,**/*otherFile.html"
+            // Index files might be a list of ant patterns, e.g. "**/*index.html,**/*otherFile.html"
             // So split them and search for files within the archive directory that match that pattern
             List<String> csvReports = new ArrayList<>();
             File archiveDirFile = new File(archiveDir.getRemote());
             if (archiveDirFile.exists()) {
-                String[] splittedPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-                for (String pattern : splittedPatterns) {
+                String[] splitPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+                for (String pattern : splitPatterns) {
                     FileSet fs = Util.createFileSet(archiveDirFile, pattern);
                     csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
                 }
