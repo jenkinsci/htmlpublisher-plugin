@@ -34,6 +34,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ public class HtmlPublisher extends Recorder {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i) + "\n";
                 bw.write(line);
-                sha1.update(line.getBytes("UTF-8"));
+                sha1.update(line.getBytes(StandardCharsets.UTF_8));
             }
         }
 

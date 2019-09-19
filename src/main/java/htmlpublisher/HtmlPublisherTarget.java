@@ -2,6 +2,7 @@ package htmlpublisher;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -540,13 +541,13 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return false;
         }
         final HtmlPublisherTarget other = (HtmlPublisherTarget) obj;
-        if ((this.reportName == null) ? (other.reportName != null) : !this.reportName.equals(other.reportName)) {
+        if (!Objects.equals(this.reportName, other.reportName)) {
             return false;
         }
-        if ((this.reportDir == null) ? (other.reportDir != null) : !this.reportDir.equals(other.reportDir)) {
+        if (!Objects.equals(this.reportDir, other.reportDir)) {
             return false;
         }
-        if ((this.reportFiles == null) ? (other.reportFiles != null) : !this.reportFiles.equals(other.reportFiles)) {
+        if (!Objects.equals(this.reportFiles, other.reportFiles)) {
             return false;
         }
         if (this.alwaysLinkToLastBuild != other.alwaysLinkToLastBuild) {

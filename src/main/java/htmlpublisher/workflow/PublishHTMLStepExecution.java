@@ -23,7 +23,7 @@
  */
 package htmlpublisher.workflow;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import javax.inject.Inject;
 
@@ -67,8 +67,8 @@ public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStep
             throw new AbortException("Cannot publish the report. Target is not specified");
         }
         
-        boolean res = HtmlPublisher.publishReports(build, ws, listener, 
-                Arrays.asList(target), HtmlPublisher.class);
+        boolean res = HtmlPublisher.publishReports(build, ws, listener,
+                Collections.singletonList(target), HtmlPublisher.class);
         if (!res) {
             throw new AbortException("Cannot publish HTML files");
         }      
