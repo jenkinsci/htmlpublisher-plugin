@@ -26,7 +26,6 @@ package htmlpublisher.workflow;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import htmlpublisher.HtmlPublisherTarget;
-import hudson.model.Action;
 import hudson.model.FreeStyleProject;
 import hudson.model.Node;
 import hudson.model.Result;
@@ -208,7 +207,7 @@ public class PublishHTMLStepTest {
                   ", keepAll: " + target.getKeepAll() + ", reportDir: '" + target.getReportDir() +
                   "', reportFiles: '" + target.getReportFiles() + "', reportName: '" + target.getReportName() + "']) \n"
                 + "}", true));
-        QueueTaskFuture<WorkflowRun> runFuture = job.scheduleBuild2(0, new Action[0]);
+        QueueTaskFuture<WorkflowRun> runFuture = job.scheduleBuild2(0);
         assertThat("build was actually scheduled", runFuture, Matchers.notNullValue());
         run = runFuture.get();
     }

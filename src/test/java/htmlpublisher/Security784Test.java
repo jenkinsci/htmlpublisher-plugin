@@ -2,7 +2,6 @@ package htmlpublisher;
 
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.model.FreeStyleProject;
-import hudson.model.Job;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
