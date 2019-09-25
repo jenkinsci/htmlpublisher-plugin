@@ -38,7 +38,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -69,10 +68,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
-
-import org.apache.tools.ant.types.FileSet;
 import jenkins.model.Jenkins;
-
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -220,17 +216,8 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT";
             logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
-            // Index files might be a list of ant patterns, e.g. "**/*index.html,**/*otherFile.html"
-            // So split them and search for files within the archive directory that match that pattern
-            List<String> csvReports = new ArrayList<>();
-            File archiveDirFile = new File(archiveDir.getRemote());
-            if (archiveDirFile.exists()) {
-                String[] splitPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-                for (String pattern : splitPatterns) {
-                    FileSet fs = Util.createFileSet(archiveDirFile, pattern);
-                    csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
-                }
-            }
+            // The index name might be a comma separated list of names, so let's figure out all the pages we should index.
+            String[] csvReports = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
 
             String[] titles = null;
             if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
@@ -241,13 +228,10 @@ public class HtmlPublisher extends Recorder {
             }
 
             List<String> reports = new ArrayList<>();
-            for (int j=0; j < csvReports.size(); j++) {
-                String report = csvReports.get(j);
+            for (int j=0; j < csvReports.length; j++) {
+                String report = csvReports[j];
                 report = report.trim();
-                // On windows file paths contains back slashes, but
-                // in the HTML file we do not want them, so replace them with forward slash
-                report = report.replace("\\", "/");
-	
+
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.isEmpty()) {
                     continue;
@@ -324,6 +308,7 @@ public class HtmlPublisher extends Recorder {
                 logger.println("Error: NoSuchAlgorithmException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
             }
         }
+
         return true;
     }
 
