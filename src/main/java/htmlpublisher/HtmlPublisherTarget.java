@@ -17,6 +17,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.owasp.encoder.Encode;
 
 import com.google.common.base.Charsets;
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
@@ -253,7 +254,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getBackToName() {
-            return project.getDisplayName();
+            return Encode.forHtml(project.getDisplayName());
         }
 
         public String getBackToUrl() {
@@ -416,7 +417,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         public String getBackToName() {
-            return build.getDisplayName();
+            return Encode.forHtml(build.getDisplayName());
         }
 
         @Override
