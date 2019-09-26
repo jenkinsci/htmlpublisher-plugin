@@ -36,6 +36,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.owasp.encoder.Encode;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -245,7 +246,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getBackToName() {
-            return project.getDisplayName();
+            return Encode.forHtml(project.getDisplayName());
         }
 
         public String getBackToUrl() {
@@ -410,7 +411,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         public String getBackToName() {
-            return build.getDisplayName();
+            return Encode.forHtml(build.getDisplayName());
         }
 
         @Override

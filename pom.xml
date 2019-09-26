@@ -90,6 +90,11 @@
           <artifactId>workflow-step-api</artifactId>
           <version>${workflow.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.owasp.encoder</groupId>
+            <artifactId>encoder</artifactId>
+            <version>1.2.2</version>
+        </dependency>
         <dependency> <!-- Test framework -->
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-step-api</artifactId>
