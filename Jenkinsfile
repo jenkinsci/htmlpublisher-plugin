@@ -1,1 +1,1 @@
-buildPlugin(jdkVersions: [8])
+buildPlugin(configurations: buildPlugin.recommendedConfigurations())
