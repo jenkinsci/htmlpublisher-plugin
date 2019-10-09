@@ -207,6 +207,7 @@ public class HtmlPublisher extends Recorder {
             return false;
         }
 
+
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
@@ -220,16 +221,49 @@ public class HtmlPublisher extends Recorder {
             String levelString = keepAll ? "BUILD" : "PROJECT";
             logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
 
+            try {
+                if (!archiveDir.exists()) {
+                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
+
+                    if (!allowMissing) {
+                        build.setResult(Result.FAILURE);
+                    }
+
+                    return true;
+                }
+
+                if (!keepAll) {
+                    // We are only keeping one copy at the project level, so remove the old one.
+                    targetDir.deleteRecursive();
+                }
+
+                if (archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir) == 0) {
+                    if (!allowMissing) {
+                        listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
+                        final Result buildResult = build.getResult();
+                        if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
+                            listener.error("This is especially strange since your build otherwise succeeded.");
+                        }
+                        build.setResult(Result.FAILURE);
+                    }
+
+                    return true;
+                }
+            } catch (IOException e) {
+                Util.displayIOException(e, listener);
+                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
+                build.setResult(Result.FAILURE);
+                return true;
+            }
+
             // Index files might be a list of ant patterns, e.g. "**/*index.html,**/*otherFile.html"
             // So split them and search for files within the archive directory that match that pattern
             List<String> csvReports = new ArrayList<>();
-            File archiveDirFile = new File(archiveDir.getRemote());
-            if (archiveDirFile.exists()) {
-                String[] splitPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
-                for (String pattern : splitPatterns) {
-                    FileSet fs = Util.createFileSet(archiveDirFile, pattern);
-                    csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
-                }
+            File targetDirFile = new File(targetDir.getRemote());
+            String[] splitPatterns = resolveParametersInString(build, listener, reportTarget.getReportFiles()).split(",");
+            for (String pattern : splitPatterns) {
+                FileSet fs = Util.createFileSet(targetDirFile, pattern);
+                csvReports.addAll(Arrays.asList(fs.getDirectoryScanner().getIncludedFiles()));
             }
 
             String[] titles = null;
@@ -279,34 +313,6 @@ public class HtmlPublisher extends Recorder {
             }
 
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
-
-            try {
-                if (!archiveDir.exists() && !allowMissing) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-                    build.setResult(Result.FAILURE);
-                    return true;
-                } else if (!keepAll) {
-                    // We are only keeping one copy at the project level, so remove the old one.
-                    targetDir.deleteRecursive();
-                }
-
-                if (archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir) == 0 && !allowMissing) {
-                    listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
-                    final Result buildResult = build.getResult();
-                    if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
-                        // If the build failed, don't complain that there was no coverage.
-                        // The build probably didn't even get to the point where it produces coverage.
-                        listener.error("This is especially strange since your build otherwise succeeded.");
-                    }
-                    build.setResult(Result.FAILURE);
-                    return true;
-                }
-            } catch (IOException e) {
-                Util.displayIOException(e, listener);
-                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
-                build.setResult(Result.FAILURE);
-                return true;
-            }
 
             // Now add the footer.
             reportLines.addAll(footerLines);
