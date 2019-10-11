@@ -196,14 +196,14 @@ public class HtmlPublisher extends Recorder {
         try {
             headerLines = readFile(HEADER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occured reading file "+HEADER+", message:"+ex.getMessage());
+            logger.print("Exception occurred reading file "+HEADER+", message:"+ex.getMessage());
             return false;
         }
         List<String> footerLines;
         try {
             footerLines = readFile(FOOTER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occured reading file "+FOOTER+", message:"+ex.getMessage());
+            logger.print("Exception occurred reading file "+FOOTER+", message:"+ex.getMessage());
             return false;
         }
 
@@ -224,11 +224,9 @@ public class HtmlPublisher extends Recorder {
             try {
                 if (!archiveDir.exists()) {
                     listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-
                     if (!allowMissing) {
                         build.setResult(Result.FAILURE);
                     }
-
                     return true;
                 }
 
@@ -246,7 +244,6 @@ public class HtmlPublisher extends Recorder {
                         }
                         build.setResult(Result.FAILURE);
                     }
-
                     return true;
                 }
             } catch (IOException e) {
