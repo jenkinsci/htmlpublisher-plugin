@@ -226,7 +226,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         return getBuildArchiveDir(run, getSanitizedName());
     }
 
-
     private File getBuildArchiveDir(Run run, String dirName) {
         return new File(new File(run.getRootDir(), "htmlreports"), dirName);
     }
