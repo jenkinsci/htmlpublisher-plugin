@@ -4,20 +4,20 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.29</version>
+    <version>3.50</version>
     <relativePath />
   </parent>
   
   <properties>
-    <jenkins.version>1.609.3</jenkins.version>
-    <workflow.version>1.14.2</workflow.version>
-    <java.level>7</java.level>
+    <jenkins.version>2.150.3</jenkins.version>
+    <java.level>8</java.level>
+    <jenkins-test-harness.version>2.55</jenkins-test-harness.version>
   </properties>
   
   <licenses>
     <license>
       <name>The MIT License (MIT)</name>
-      <url>http://opensource.org/licenses/MIT</url>
+      <url>https://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -27,7 +27,7 @@
   <version>1.22-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
   <developers>
       <developer>
           <id>r2b2_nz</id>
@@ -67,14 +67,14 @@
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
+            <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
     <dependencies>
@@ -87,7 +87,6 @@
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-step-api</artifactId>
-          <version>${workflow.version}</version>
         </dependency>
         <dependency>
             <groupId>org.owasp.encoder</groupId>
@@ -97,26 +96,22 @@
         <dependency> <!-- Test framework -->
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-step-api</artifactId>
-          <version>${workflow.version}</version>
           <classifier>tests</classifier>
           <scope>test</scope>
         </dependency>
         <dependency> 
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-job</artifactId>
-          <version>${workflow.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-cps</artifactId>
-          <version>${workflow.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-durable-task-step</artifactId>
-          <version>${workflow.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
@@ -128,8 +123,19 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>annotation-indexer</artifactId>
-            <version>1.9</version>
+            <version>1.12</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
-</project>  
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.150.x</artifactId>
+                <version>3</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

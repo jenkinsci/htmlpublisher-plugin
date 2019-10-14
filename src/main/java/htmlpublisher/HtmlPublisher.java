@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
@@ -121,6 +122,7 @@ public class HtmlPublisher extends Recorder {
         return readFile(filePath, this.getClass());
     }
 
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "Apparent false positive on JDK11 on try block")
     public static List<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.IOException {
         List<String> aList = new ArrayList<>();
