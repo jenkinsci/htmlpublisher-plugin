@@ -302,7 +302,7 @@ public class HtmlPublisher extends Recorder {
                         }
                     }
 
-                    if (!alreadyPublished) {
+                    if (!reportTarget.getOnlyCreateReportWithDifferentName() || !alreadyPublished) {
                         String checksum = writeFile(reportLines, outputFile);
                         reportTarget.handleAction(build, checksum);
                     } else {

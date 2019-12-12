@@ -1,14 +1,13 @@
 package htmlpublisher;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
-
+import com.google.common.base.Charsets;
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.*;
+import hudson.util.HttpResponses;
+import jenkins.model.RunAction2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -19,24 +18,13 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.owasp.encoder.Encode;
 
-import com.google.common.base.Charsets;
-import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
-
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractItem;
-import hudson.model.Action;
-import hudson.model.Descriptor;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.InvisibleAction;
-import hudson.model.Job;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Run;
-import hudson.util.HttpResponses;
-import jenkins.model.RunAction2;
+import javax.annotation.Nonnull;
+import javax.servlet.ServletException;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -77,6 +65,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final boolean allowMissing;
 
     /**
+     * If false, several reports with the same name will get published on build page
+     */
+    private final boolean onlyCreateReportWithDifferentName;
+
+    /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
      */
     @Deprecated
@@ -98,13 +91,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     @Deprecated
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
+        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing, true);
     }
 
     public String getReportTitles() {
         return reportTitles;
     }
 
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+        this(reportName, reportDir, reportFiles, keepAll, alwaysLinkToLastBuild, allowMissing, false);
+    }
     /**
      * Constructor.
      * @param reportName Report name
@@ -114,16 +110,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
      *      Otherwise, the latest successful one will be referenced
      * @param allowMissing If true, blocks the build failure if the report is missing
+     * @param onlyCreateReportWithDifferentName If true, 2 calls to publish HTML reports with the same name will create 2 links on build page
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing, boolean onlyCreateReportWithDifferentName) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
+        this.onlyCreateReportWithDifferentName = onlyCreateReportWithDifferentName;
     }
 
     public String getReportName() {
@@ -148,7 +146,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public boolean getAllowMissing() {
-           return this.allowMissing;
+        return this.allowMissing;
+    }
+
+    public boolean getOnlyCreateReportWithDifferentName() {
+        return this.onlyCreateReportWithDifferentName;
     }
 
     public boolean getEscapeUnderscores() {
@@ -529,6 +531,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         hash = 97 * hash + (this.alwaysLinkToLastBuild ? 1 : 0);
         hash = 97 * hash + (this.keepAll ? 1 : 0);
         hash = 97 * hash + (this.allowMissing ? 1 : 0);
+        hash = 97 * hash + (this.onlyCreateReportWithDifferentName ? 1 : 0);
         return hash;
     }
 
@@ -557,6 +560,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return false;
         }
         if (this.allowMissing != other.allowMissing) {
+            return false;
+        }
+        if (this.onlyCreateReportWithDifferentName != other.onlyCreateReportWithDifferentName) {
             return false;
         }
         return true;

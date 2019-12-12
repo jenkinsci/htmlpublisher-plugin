@@ -34,8 +34,11 @@
     <f:entry field="includes" title="${%reportFiles.includes}" description="${%reportFiles.includesHelp}">
       <f:textbox default="**/*"/>
     </f:entry>
-      <f:entry field="escapeUnderscores" title="${%escapeUnderscores.title}">
-        <f:checkbox default="true"/>
-      </f:entry>
+    <f:entry field="escapeUnderscores" title="${%escapeUnderscores.title}">
+      <f:checkbox default="true"/>
+    </f:entry>
+    <f:entry field="onlyCreateReportWithDifferentName" title="${%onlyCreateReportWithDifferentName.title}">
+      <f:checkbox default="false"/>
+    </f:entry>
   </f:advanced>
 </j:jelly>
