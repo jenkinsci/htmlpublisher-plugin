@@ -104,10 +104,10 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, true);
         //default behavior is include all
         target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, true);
         String includes = "tab2.html";
         target2.setIncludes(includes);
         assertEquals(includes, target2.getIncludes());
