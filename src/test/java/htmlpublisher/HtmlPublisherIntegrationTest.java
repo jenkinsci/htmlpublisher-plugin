@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -74,6 +75,10 @@ public class HtmlPublisherIntegrationTest {
         HtmlPublisherTarget[] l = { target1, target2 };
         p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
         AbstractBuild build = j.buildAndAssertSuccess(p);
+
+        // check both reports have been added to build
+        Assert.assertEquals(build.getActions(HtmlPublisherTarget.HTMLBuildAction.class).size(), 2);
+
         File base = new File(build.getRootDir(), "htmlreports");
         List<String> tab1Files = Arrays.asList(new File(base, "tab1").list());
         List<String> tab2Files = Arrays.asList(new File(base, "tab2").list());
@@ -83,6 +88,35 @@ public class HtmlPublisherIntegrationTest {
         // tab2 should not include dummy
         assertTrue(tab2Files.contains("tab2.html"));
         assertFalse(tab2Files.contains("dummy.html"));
+    }
+
+    @Test
+    public void testIncludeSameReport() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("include_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("tab1.html").write("hello", "UTF-8");
+                ws.child("tab2.html").write("hello", "UTF-8");
+                ws.child("dummy.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        //default behavior is include all
+        target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        String includes = "tab2.html";
+        target2.setIncludes(includes);
+        assertEquals(includes, target2.getIncludes());
+        HtmlPublisherTarget[] l = { target1, target2 };
+        p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+
+        // check that the report has been added only once
+        Assert.assertEquals(build.getActions(HtmlPublisherTarget.HTMLBuildAction.class).size(), 1);
     }
 
     @Test

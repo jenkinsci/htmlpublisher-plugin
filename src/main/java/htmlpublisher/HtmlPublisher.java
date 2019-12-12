@@ -23,56 +23,30 @@
  */
 package htmlpublisher;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.*;
+import hudson.matrix.MatrixConfiguration;
+import hudson.matrix.MatrixProject;
+import hudson.model.*;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
+import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-import hudson.Util;
-import hudson.matrix.MatrixConfiguration;
-import hudson.matrix.MatrixProject;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Action;
-import hudson.model.BuildListener;
-import hudson.model.Job;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-import hudson.util.FormValidation;
-
-import org.apache.tools.ant.types.FileSet;
-import jenkins.model.Jenkins;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 
 /**
@@ -319,8 +293,21 @@ public class HtmlPublisher extends Recorder {
             File outputFile = new File(targetDir.getRemote(), reportTarget.getWrapperName());
             try {
                 if(archiveDir.exists()) {
-                    String checksum = writeFile(reportLines, outputFile);
-                    reportTarget.handleAction(build, checksum);
+
+                    // check if we should add a link to build for this report, based on the existence of other reports with the same name
+                    boolean alreadyPublished = false;
+                    for (Action action: build.getAllActions()) {
+                        if (action.getDisplayName() != null && action.getDisplayName().equals(reportTarget.getReportName())) {
+                            alreadyPublished = true;
+                        }
+                    }
+
+                    if (!alreadyPublished) {
+                        String checksum = writeFile(reportLines, outputFile);
+                        reportTarget.handleAction(build, checksum);
+                    } else {
+                        logger.println(String.format("[htmlpublisher] Warn: A report with the same name already exists", reportTarget.getReportName()));
+                    }
                 }
             } catch (IOException e) {
                 logger.println("Error: IOException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
