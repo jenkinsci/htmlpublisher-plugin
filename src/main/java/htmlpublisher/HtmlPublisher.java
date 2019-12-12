@@ -322,8 +322,14 @@ public class HtmlPublisher extends Recorder {
 
                     // check if we should add a link to build for this report, based on the existence of other reports with the same name
                     boolean alreadyPublished = false;
+                    String reportName = reportTarget.getReportName();
+                    String actionName = null;
                     for (Action action: build.getAllActions()) {
-                        if (action != null && action.getDisplayName() != null && action.getDisplayName().equals(reportTarget.getReportName())) {
+                        if (action == null) {
+                            continue;
+                        }
+                        actionName = action.getDisplayName();
+                        if (actionName != null && actionName.equals(reportName)) {
                             alreadyPublished = true;
                         }
                     }
@@ -332,7 +338,7 @@ public class HtmlPublisher extends Recorder {
                         String checksum = writeFile(reportLines, outputFile);
                         reportTarget.handleAction(build, checksum);
                     } else {
-                        logger.println(String.format("[htmlpublisher] Warn: A report with the same name already exists", reportTarget.getReportName()));
+                        logger.println(String.format("[htmlpublisher] Warn: A report with the same name [%s] already exists", reportName));
                     }
                 }
             } catch (IOException e) {
