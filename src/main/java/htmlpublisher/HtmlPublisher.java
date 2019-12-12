@@ -323,7 +323,7 @@ public class HtmlPublisher extends Recorder {
                     // check if we should add a link to build for this report, based on the existence of other reports with the same name
                     boolean alreadyPublished = false;
                     for (Action action: build.getAllActions()) {
-                        if (action.getDisplayName() != null && action.getDisplayName().equals(reportTarget.getReportName())) {
+                        if (action != null && action.getDisplayName() != null && action.getDisplayName().equals(reportTarget.getReportName())) {
                             alreadyPublished = true;
                         }
                     }
