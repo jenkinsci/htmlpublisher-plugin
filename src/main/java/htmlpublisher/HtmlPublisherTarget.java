@@ -1,13 +1,14 @@
 package htmlpublisher;
 
-import com.google.common.base.Charsets;
-import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Util;
-import hudson.model.*;
-import hudson.util.HttpResponses;
-import jenkins.model.RunAction2;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+import javax.servlet.ServletException;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -18,13 +19,24 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.owasp.encoder.Encode;
 
-import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.base.Charsets;
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
+
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.AbstractItem;
+import hudson.model.Action;
+import hudson.model.Descriptor;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.InvisibleAction;
+import hudson.model.Job;
+import hudson.model.ProminentProjectAction;
+import hudson.model.Run;
+import hudson.util.HttpResponses;
+import jenkins.model.RunAction2;
 
 /**
  * A representation of an HTML directory to archive and publish.
