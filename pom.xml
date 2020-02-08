@@ -27,7 +27,7 @@
   <version>1.22-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
+  <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
   <developers>
       <developer>
           <id>r2b2_nz</id>
