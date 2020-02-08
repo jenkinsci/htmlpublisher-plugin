@@ -66,6 +66,7 @@ public class PublishHTMLStep extends AbstractStepImpl {
         }
 
         @Override
+        @Nonnull
         public String getDisplayName() {
             return "Publish HTML reports";
         }

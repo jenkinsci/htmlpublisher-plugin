@@ -563,6 +563,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     @Extension
+    @Nonnull
     public static class DescriptorImpl extends Descriptor<HtmlPublisherTarget> {
         public String getDisplayName() { return ""; }
     }

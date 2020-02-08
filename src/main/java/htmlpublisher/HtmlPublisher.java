@@ -74,6 +74,8 @@ import hudson.util.FormValidation;
 import org.apache.tools.ant.types.FileSet;
 import jenkins.model.Jenkins;
 
+import javax.annotation.Nonnull;
+
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -89,7 +91,7 @@ public class HtmlPublisher extends Recorder {
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
-        this.reportTargets = reportTargets != null ? new ArrayList<>(reportTargets) : new ArrayList<HtmlPublisherTarget>();
+        this.reportTargets = reportTargets != null ? new ArrayList<>(reportTargets) : new ArrayList<>();
     }
 
     public List<HtmlPublisherTarget> getReportTargets() {
@@ -300,7 +302,7 @@ public class HtmlPublisher extends Recorder {
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
-            String hudsonUrl = Jenkins.getActiveInstance().getRootUrl();
+            String hudsonUrl = Jenkins.get().getRootUrl();
             Job job = build.getParent();
             reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
             // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
@@ -340,6 +342,7 @@ public class HtmlPublisher extends Recorder {
     }
 
     @Override
+    @Nonnull
     public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
         if (this.reportTargets.isEmpty()) {
             return Collections.emptyList();
@@ -365,6 +368,7 @@ public class HtmlPublisher extends Recorder {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         @Override
+        @Nonnull
         public String getDisplayName() {
             return "Publish HTML reports";
         }
