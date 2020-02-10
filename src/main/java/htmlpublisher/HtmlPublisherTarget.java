@@ -79,7 +79,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     /**
      * If false, several reports with the same name will get published on build page
      */
-    private final boolean onlyCreateReportWithDifferentName;
+    private Boolean onlyCreateReportWithDifferentName;
 
     /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
@@ -103,16 +103,13 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     @Deprecated
     public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing, true);
+        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
     }
 
     public String getReportTitles() {
         return reportTitles;
     }
 
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, keepAll, alwaysLinkToLastBuild, allowMissing, false);
-    }
     /**
      * Constructor.
      * @param reportName Report name
@@ -122,18 +119,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
      *      Otherwise, the latest successful one will be referenced
      * @param allowMissing If true, blocks the build failure if the report is missing
-     * @param onlyCreateReportWithDifferentName If true, 2 calls to publish HTML reports with the same name will create 2 links on build page
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing, boolean onlyCreateReportWithDifferentName) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
-        this.onlyCreateReportWithDifferentName = onlyCreateReportWithDifferentName;
     }
 
     public String getReportName() {
@@ -162,7 +157,17 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public boolean getOnlyCreateReportWithDifferentName() {
-        return this.onlyCreateReportWithDifferentName;
+        if (this.onlyCreateReportWithDifferentName == null) {
+            return false;
+        } else {
+            return this.onlyCreateReportWithDifferentName;
+        }
+    }
+
+
+    @DataBoundSetter
+    public void setOnlyCreateReportWithDifferentName(boolean onlyCreateReportWithDifferentName) {
+        this.onlyCreateReportWithDifferentName = onlyCreateReportWithDifferentName;
     }
 
     public boolean getEscapeUnderscores() {
