@@ -90,6 +90,10 @@ public class HtmlPublisherIntegrationTest {
         assertFalse(tab2Files.contains("dummy.html"));
     }
 
+    /**
+     * Check option onlyCreateReportWithDifferentName when it's set to 'true'. In this case, create twice a report with the same name results in only one publication
+     * @throws Exception
+     */
     @Test
     public void testIncludeSameReport() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("include_job");
@@ -104,10 +108,12 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, true);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        target1.setOnlyCreateReportWithDifferentName(true);
         //default behavior is include all
         target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, true);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        target2.setOnlyCreateReportWithDifferentName(true);
         String includes = "tab2.html";
         target2.setIncludes(includes);
         assertEquals(includes, target2.getIncludes());
@@ -117,6 +123,41 @@ public class HtmlPublisherIntegrationTest {
 
         // check that the report has been added only once
         Assert.assertEquals(build.getActions(HtmlPublisherTarget.HTMLBuildAction.class).size(), 1);
+    }
+
+    /**
+     * Check option onlyCreateReportWithDifferentName when it's set to 'false'. In this case, create twice a report with the same name results in two publications
+     * @throws Exception
+     */
+    @Test
+    public void testIncludeSameReportPublishedTwice() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("include_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("tab1.html").write("hello", "UTF-8");
+                ws.child("tab2.html").write("hello", "UTF-8");
+                ws.child("dummy.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        target1.setOnlyCreateReportWithDifferentName(false);
+        //default behavior is include all
+        target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        target2.setOnlyCreateReportWithDifferentName(false);
+        String includes = "tab2.html";
+        target2.setIncludes(includes);
+        assertEquals(includes, target2.getIncludes());
+        HtmlPublisherTarget[] l = { target1, target2 };
+        p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+
+        // check that the report has been added twice
+        Assert.assertEquals(build.getActions(HtmlPublisherTarget.HTMLBuildAction.class).size(), 2);
     }
 
     @Test
