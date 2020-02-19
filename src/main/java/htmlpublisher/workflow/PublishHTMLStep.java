@@ -26,6 +26,8 @@ package htmlpublisher.workflow;
 import htmlpublisher.HtmlPublisherTarget;
 import hudson.Extension;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
 import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -66,6 +68,7 @@ public class PublishHTMLStep extends AbstractStepImpl {
         }
 
         @Override
+        @Nonnull
         public String getDisplayName() {
             return "Publish HTML reports";
         }

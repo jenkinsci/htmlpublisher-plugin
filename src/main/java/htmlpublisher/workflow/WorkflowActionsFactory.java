@@ -35,6 +35,8 @@ import jenkins.model.TransientActionFactory;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 
+import javax.annotation.Nonnull;
+
 /**
  * Produces actions for workflow jobs.
  * @author Oleg Nenashev
@@ -48,7 +50,8 @@ public class WorkflowActionsFactory extends TransientActionFactory<Job> {
         return Job.class;
     }
 
-    @Override 
+    @Override
+    @Nonnull
     public Collection<? extends Action> createFor(Job j) {
         List<Action> actions = new LinkedList<>();
         if (j.getClass().getCanonicalName().startsWith("org.jenkinsci.plugins.workflow"))
