@@ -41,7 +41,8 @@ Clicking _Publishing options..._ will present you with some additional options:
 #### Using with Pipeline Jobs
 
 The HTML Publisher plugin can also be used as part of a Jenkins Pipeline. All you need to do is reference the `publishHTML` step in your pipeline. e.g.
-```
+
+```groovy
 publishHTML (target : [allowMissing: false,
  alwaysLinkToLastBuild: true,
  keepAll: true,
@@ -52,6 +53,10 @@ publishHTML (target : [allowMissing: false,
 ```
 
 See https://jenkins.io/doc/pipeline/steps/htmlpublisher/ for a reference of available step parameters.
+
+To assist in the creation of the pipeline step, you can use the Snippet Generator and generate the required code. The Snippet Generator can be found at `<JENKINS-URL>/pipeline-syntax/`
+
+![](./docs/images/Pipeline_Syntax_Snippet_Generator.png)
 
 #### Troubleshooting
 
