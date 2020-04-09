@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.50</version>
+    <version>3.57</version>
     <relativePath />
   </parent>
   
   <properties>
-    <jenkins.version>2.150.3</jenkins.version>
+    <jenkins.version>2.164.3</jenkins.version>
     <java.level>8</java.level>
     <jenkins-test-harness.version>2.55</jenkins-test-harness.version>
   </properties>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>matrix-project</artifactId>
-            <version>1.0</version>
+            <version>1.11</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -123,7 +123,7 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>annotation-indexer</artifactId>
-            <version>1.12</version>
+            <version>1.13</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -131,7 +131,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.150.x</artifactId>
+                <artifactId>bom-2.164.x</artifactId>
                 <version>3</version>
                 <scope>import</scope>
                 <type>pom</type>

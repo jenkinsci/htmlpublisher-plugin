@@ -198,7 +198,7 @@ public class PublishHTMLStepTest {
         // Test node for the workflow
         r.jenkins.addNode(new DumbSlave("slave", "dummy", testWorkspace.getPath(), "1",
                 Node.Mode.NORMAL, "", r.createComputerLauncher(null), RetentionStrategy.NOOP,
-                Collections.<NodeProperty<?>>emptyList())); // TODO JENKINS-26398 clumsy
+                Collections.emptyList())); // TODO JENKINS-26398 clumsy
 
         job = r.jenkins.createProject(WorkflowJob.class, TEST_PROJECT_NAME);
         job.setDefinition(new CpsFlowDefinition(""
