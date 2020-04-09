@@ -205,12 +205,35 @@ public class HtmlPublisherIntegrationTest {
         assertTrue(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
     }
 
+    public void testActionsUpdated() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("nested1").child("aReportDir").child("nested").child("afile.html").write("hello", "UTF-8");
+                ws.child("notincluded").child("afile.html").write("hello", "UTF-8");
+                ws.child("otherDir").child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", true, true, false);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+
+        List<HtmlPublisherTarget.HTMLBuildAction> actions = build.getActions(HtmlPublisherTarget.HTMLBuildAction.class);
+        assertEquals("Action count incorrect", 1, actions.size());
+    }
+
     private void addEnvironmentVariable(String key, String value) {
         EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
         EnvVars envVars = prop.getEnvVars();
         envVars.put(key, value);
         j.jenkins.getGlobalNodeProperties().add(prop);
     }
-
-
 }
