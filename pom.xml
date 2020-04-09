@@ -55,11 +55,18 @@
              </configuration>
           </plugin>
           <plugin> <!-- TODO otherwise Groovy tests are uncompilable; cf. similar hack in workflow-cps -->
-            <groupId>org.codehaus.gmaven</groupId>
-            <artifactId>gmaven-plugin</artifactId>
-            <configuration>
-                <providerSelection>1.7</providerSelection>
-            </configuration>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <version>1.8.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>addTestSources</goal>
+                  <goal>generateTestStubs</goal>
+                  <goal>compileTests</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
       </plugins>
   </build>
