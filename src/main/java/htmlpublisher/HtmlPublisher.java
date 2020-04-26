@@ -230,8 +230,8 @@ public class HtmlPublisher extends Recorder {
                     listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                     if (!allowMissing) {
                         build.setResult(Result.FAILURE);
+                        return true;
                     }
-                    return true;
                 }
 
                 if (!keepAll) {
@@ -247,8 +247,10 @@ public class HtmlPublisher extends Recorder {
                             listener.error("This is especially strange since your build otherwise succeeded.");
                         }
                         build.setResult(Result.FAILURE);
+                        return true;
+                    } else {
+                        continue;
                     }
-                    return true;
                 }
             } catch (IOException e) {
                 Util.displayIOException(e, listener);
