@@ -182,6 +182,29 @@ public class HtmlPublisherIntegrationTest {
         assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
     }
 
+    @Test
+    public void testPublishesTwoReportsOneJob() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("afile.html").write("hello", "UTF-8");
+                ws.child("dirB").child("bfile.html").write("goodbye", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
+
     private void addEnvironmentVariable(String key, String value) {
         EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
         EnvVars envVars = prop.getEnvVars();
