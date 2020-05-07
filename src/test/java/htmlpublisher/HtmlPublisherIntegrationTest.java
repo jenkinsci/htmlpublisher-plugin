@@ -3,9 +3,8 @@ package htmlpublisher;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.FreeStyleProject;
+import hudson.model.*;
+import hudson.model.queue.QueueTaskFuture;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import org.junit.Rule;
 import org.junit.Test;
@@ -136,6 +135,74 @@ public class HtmlPublisherIntegrationTest {
         assertTrue(content.contains("nested1/aReportDir/nested/afile.html"));
         assertTrue(content.contains("otherDir/afile.html"));
         assertFalse(content.contains("notincluded/afile.html"));
+    }
+
+    @Test
+    public void testAllowMissingStillRunsSubsequentReports() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
+
+    @Test
+    public void testNotAllowMissingDoesntRunSubsequentReports() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        QueueTaskFuture<FreeStyleBuild> task = p.scheduleBuild2(0);
+        AbstractBuild build = j.assertBuildStatus(Result.FAILURE, task);
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
+
+    @Test
+    public void testPublishesTwoReportsOneJob() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("afile.html").write("hello", "UTF-8");
+                ws.child("dirB").child("bfile.html").write("goodbye", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
     }
 
     private void addEnvironmentVariable(String key, String value) {
