@@ -579,7 +579,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         if (this.allowMissing != other.allowMissing) {
             return false;
         }
-        if (this.onlyCreateReportWithDifferentName != other.onlyCreateReportWithDifferentName) {
+        if (!Objects.equals(this.onlyCreateReportWithDifferentName, other.onlyCreateReportWithDifferentName)) {
             return false;
         }
         return true;
