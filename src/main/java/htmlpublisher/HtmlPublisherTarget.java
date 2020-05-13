@@ -190,7 +190,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     /**
      * Actually not safe, this allowed directory traversal (SECURITY-784).
-     * @return
+     * @return Returns a string with replaced whitespaces by underscores.
      */
     private String getLegacySanitizedName() {
         String safeName = this.reportName;
@@ -586,7 +586,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     @Extension
+    @Nonnull
     public static class DescriptorImpl extends Descriptor<HtmlPublisherTarget> {
+        @Nonnull
         public String getDisplayName() { return ""; }
     }
 }

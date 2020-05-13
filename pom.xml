@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.50</version>
+    <version>4.1</version>
     <relativePath />
   </parent>
   
   <properties>
-    <jenkins.version>2.150.3</jenkins.version>
+    <jenkins.version>2.164.3</jenkins.version>
     <java.level>8</java.level>
     <jenkins-test-harness.version>2.55</jenkins-test-harness.version>
   </properties>
@@ -24,10 +24,10 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>1.22-SNAPSHOT</version>
+  <version>1.24-SNAPSHOT</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/HTML+Publisher+Plugin</url>
+  <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
   <developers>
       <developer>
           <id>r2b2_nz</id>
@@ -55,11 +55,18 @@
              </configuration>
           </plugin>
           <plugin> <!-- TODO otherwise Groovy tests are uncompilable; cf. similar hack in workflow-cps -->
-            <groupId>org.codehaus.gmaven</groupId>
-            <artifactId>gmaven-plugin</artifactId>
-            <configuration>
-                <providerSelection>1.7</providerSelection>
-            </configuration>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <version>1.8.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>addTestSources</goal>
+                  <goal>generateTestStubs</goal>
+                  <goal>compileTests</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
       </plugins>
   </build>
@@ -81,7 +88,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>matrix-project</artifactId>
-            <version>1.0</version>
+            <version>1.11</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -123,7 +130,7 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>annotation-indexer</artifactId>
-            <version>1.12</version>
+            <version>1.13</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -131,8 +138,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.150.x</artifactId>
-                <version>3</version>
+                <artifactId>bom-2.164.x</artifactId>
+                <version>4</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
