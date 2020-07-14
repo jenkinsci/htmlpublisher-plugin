@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>matrix-project</artifactId>
-            <version>1.11</version>
+            <version>1.16</version>
             <type>jar</type>
         </dependency>
         <dependency>
