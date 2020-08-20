@@ -54,20 +54,6 @@
                  <goals>deploy</goals>
              </configuration>
           </plugin>
-          <plugin> <!-- TODO otherwise Groovy tests are uncompilable; cf. similar hack in workflow-cps -->
-            <groupId>org.codehaus.gmavenplus</groupId>
-            <artifactId>gmavenplus-plugin</artifactId>
-            <version>1.9.0</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>addTestSources</goal>
-                  <goal>generateTestStubs</goal>
-                  <goal>compileTests</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
       </plugins>
   </build>
 
