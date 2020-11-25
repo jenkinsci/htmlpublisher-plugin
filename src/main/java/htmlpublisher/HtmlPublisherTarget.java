@@ -278,19 +278,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         protected abstract String getTitle();
 
         protected abstract File dir();
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BaseHTMLAction that = (BaseHTMLAction) o;
-            return Objects.equals(actualHtmlPublisherTarget, that.actualHtmlPublisherTarget);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(actualHtmlPublisherTarget);
-        }
     }
 
     public class HTMLAction extends BaseHTMLAction implements ProminentProjectAction {
@@ -491,9 +478,9 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         if (this.keepAll) {
             HTMLBuildAction a = new HTMLBuildAction(build, this);
             a.setWrapperChecksum(checksum);
-            build.addOrReplaceAction(a);
-        } else { // Otherwise we add a hidden marker
-            build.addOrReplaceAction(new HTMLPublishedForProjectMarkerAction(build, this));
+            build.addAction(a);
+        } else { // Othwewise we add a hidden marker
+            build.addAction(new HTMLPublishedForProjectMarkerAction(build, this));
         }
     }
 
@@ -537,6 +524,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public int hashCode() {
         int hash = 5;
         hash = 97 * hash + (this.reportName != null ? this.reportName.hashCode() : 0);
+        hash = 97 * hash + (this.reportDir != null ? this.reportDir.hashCode() : 0);
+        hash = 97 * hash + (this.reportFiles != null ? this.reportFiles.hashCode() : 0);
+        hash = 97 * hash + (this.alwaysLinkToLastBuild ? 1 : 0);
+        hash = 97 * hash + (this.keepAll ? 1 : 0);
+        hash = 97 * hash + (this.allowMissing ? 1 : 0);
         return hash;
     }
 
@@ -552,7 +544,21 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         if (!Objects.equals(this.reportName, other.reportName)) {
             return false;
         }
-
+        if (!Objects.equals(this.reportDir, other.reportDir)) {
+            return false;
+        }
+        if (!Objects.equals(this.reportFiles, other.reportFiles)) {
+            return false;
+        }
+        if (this.alwaysLinkToLastBuild != other.alwaysLinkToLastBuild) {
+            return false;
+        }
+        if (this.keepAll != other.keepAll) {
+            return false;
+        }
+        if (this.allowMissing != other.allowMissing) {
+            return false;
+        }
         return true;
     }
 

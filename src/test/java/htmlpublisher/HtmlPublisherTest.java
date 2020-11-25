@@ -1,10 +1,6 @@
 package htmlpublisher;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.FreeStyleProject;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 
@@ -37,25 +33,5 @@ public class HtmlPublisherTest {
         // test underscores not escaped when not requested
         assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
 
-    }
-
-    @Test
-    public void testActionEqual() {
-        AbstractBuild build = Mockito.mock(AbstractBuild.class);
-
-        HtmlPublisherTarget targetOne = new HtmlPublisherTarget("tab1 ", "target ", "tab1.html ", true, true, false);
-        assertEquals(targetOne.getReportName(), "tab1");
-        assertEquals(targetOne.getReportDir(), "target");
-        assertEquals(targetOne.getReportFiles(), "tab1.html");
-
-        HtmlPublisherTarget targetTwo = new HtmlPublisherTarget("tab1 ", "target ", "tab1.html ", true, true, false);
-        assertEquals(targetTwo.getReportName(), "tab1");
-        assertEquals(targetTwo.getReportDir(), "target");
-        assertEquals(targetTwo.getReportFiles(), "tab1.html");
-
-        HtmlPublisherTarget.HTMLBuildAction actionOne = targetOne.new HTMLBuildAction(build, targetOne);
-        HtmlPublisherTarget.HTMLBuildAction actionTwo = targetOne.new HTMLBuildAction(build, targetTwo);
-
-        assertEquals(actionOne, actionTwo);
     }
 }
