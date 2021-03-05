@@ -2,7 +2,7 @@ package htmlpublisher;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.List;
+import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class HtmlFileNameTest {
         FreeStyleProject job = j.createFreeStyleProject();
 
         job.getBuildersList().add(new CreateFileBuilder("#$&+,:;= ?@.html", content));
-        job.getPublishersList().add(new HtmlPublisher(List.of(
+        job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
             new HtmlPublisherTarget("report-name", "", "*.html", true, true, false))));
         job.save();
 
