@@ -1,21 +1,22 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>4.27</version>
-    <relativePath />
+    <relativePath/>
   </parent>
-  
+
   <properties>
     <revision>1.26</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
-    <jenkins.version>2.164.3</jenkins.version>
+    <jenkins.version>2.289.3</jenkins.version>
     <java.level>8</java.level>
   </properties>
-  
+
   <licenses>
     <license>
       <name>The MIT License (MIT)</name>
@@ -31,106 +32,106 @@
   <description>This plugin publishes HTML reports.</description>
   <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
   <developers>
-      <developer>
-          <id>r2b2_nz</id>
-          <name>Richard Bywater</name>
-      </developer>
-      <developer>
-          <id>mcrooney</id>
-          <name>Michael Rooney</name>
-      </developer>
+    <developer>
+      <id>r2b2_nz</id>
+      <name>Richard Bywater</name>
+    </developer>
+    <developer>
+      <id>mcrooney</id>
+      <name>Michael Rooney</name>
+    </developer>
   </developers>
   <scm>
-      <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
-      <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
-      <url>https://github.com/${gitHubRepo}</url>
-      <tag>${scmTag}</tag>
+    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <url>https://github.com/${gitHubRepo}</url>
+    <tag>${scmTag}</tag>
   </scm>
 
   <build>
-      <plugins>
-          <plugin>
-             <artifactId>maven-release-plugin</artifactId>
-             <version>2.5.3</version>
-             <configuration>
-                 <goals>deploy</goals>
-             </configuration>
-          </plugin>
-      </plugins>
+    <plugins>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>https://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+      <version>1.19</version>
+      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.owasp.encoder</groupId>
+      <artifactId>encoder</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <dependency> <!-- Test framework -->
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-durable-task-step</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.infradna.tool</groupId>
+      <artifactId>bridge-method-annotation</artifactId>
+      <version>1.21</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci</groupId>
+      <artifactId>annotation-indexer</artifactId>
+      <version>1.15</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>matrix-project</artifactId>
-            <version>1.18</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-step-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.owasp.encoder</groupId>
-            <artifactId>encoder</artifactId>
-            <version>1.2.3</version>
-        </dependency>
-        <dependency> <!-- Test framework -->
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-step-api</artifactId>
-          <classifier>tests</classifier>
-          <scope>test</scope>
-        </dependency>
-        <dependency> 
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-job</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-cps</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.jenkins-ci.plugins.workflow</groupId>
-          <artifactId>workflow-durable-task-step</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>com.infradna.tool</groupId>
-          <artifactId>bridge-method-annotation</artifactId>
-          <version>1.21</version>
-          <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci</groupId>
-            <artifactId>annotation-indexer</artifactId>
-            <version>1.15</version>
-            <scope>provided</scope>
-        </dependency>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.289.x</artifactId>
+        <version>966.v3857b7c82032</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
     </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.164.x</artifactId>
-                <version>10</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+  </dependencyManagement>
 </project>
