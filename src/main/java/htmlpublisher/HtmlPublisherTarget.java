@@ -2,6 +2,7 @@ package htmlpublisher;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +20,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.owasp.encoder.Encode;
 
-import com.google.common.base.Charsets;
 import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 
 import hudson.Extension;
@@ -195,7 +195,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
             String match = m.group();
-            m.appendReplacement(sb, "_" + Hex.encodeHexString(match.getBytes(Charsets.UTF_8)));
+            m.appendReplacement(sb, "_" + Hex.encodeHexString(match.getBytes(StandardCharsets.UTF_8)));
         }
         m.appendTail(sb);
         return sb.toString();
