@@ -24,21 +24,21 @@ public class HtmlFileNameTest {
 
         FreeStyleProject job = j.createFreeStyleProject();
 
-        job.getBuildersList().add(new CreateFileBuilder("#$&+,;= @.html", content));
+        job.getBuildersList().add(new CreateFileBuilder("subdir/#$&+,;= @.html", content));
         job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
-            new HtmlPublisherTarget("report-name", "", "*.html", true, true, false))));
+            new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false))));
         job.save();
 
         j.buildAndAssertSuccess(job);
 
         JenkinsRule.WebClient client = j.createWebClient();
         assertEquals(content,
-            client.getPage(job, "report-name/%23%24%26%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
+            client.getPage(job, "report-name/subdir/%23%24%26%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
 
         // published html page(s)
         HtmlPage page = client.getPage(job, "report-name");
         HtmlInlineFrame iframe = (HtmlInlineFrame) page.getElementById("myframe");
-        assertEquals("%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
+        assertEquals("subdir/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
         assertEquals("Hello world!", pageInIframe.getBody().asText());

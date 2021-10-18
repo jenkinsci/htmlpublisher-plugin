@@ -81,7 +81,7 @@ function updateBody(tabId, page) {
     tab.setAttribute("class", "selected");
     selectedTab = tabId;
     iframe = document.getElementById("myframe");
-    iframe.src = encodeURIComponent(tab.getAttribute("value"));
+    iframe.src = encodeURIComponent(tab.getAttribute("value")).replace('%2F', '/');
 }
 function init(tabId){
 	updateBody(tabId);
