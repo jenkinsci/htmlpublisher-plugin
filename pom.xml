@@ -9,7 +9,7 @@
   </parent>
 
   <properties>
-    <revision>1.27</revision>
+    <revision>1.28</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
     <jenkins.version>2.289.3</jenkins.version>
@@ -26,7 +26,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>1.27</version>
+  <version>${revision}${changelist}</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
   <url>https://github.com/jenkinsci/htmlpublisher-plugin</url>
@@ -44,7 +44,7 @@
     <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
     <url>https://github.com/${gitHubRepo}</url>
-    <tag>htmlpublisher-1.27</tag>
+    <tag>${scmTag}</tag>
   </scm>
 
   <build>
