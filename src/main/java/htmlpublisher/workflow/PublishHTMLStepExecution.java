@@ -25,16 +25,15 @@ package htmlpublisher.workflow;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import javax.annotation.Nonnull;
 
-import org.jenkinsci.plugins.workflow.steps.AbstractSynchronousNonBlockingStepExecution;
-import org.jenkinsci.plugins.workflow.steps.StepContextParameter;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 
 import htmlpublisher.HtmlPublisher;
 import htmlpublisher.HtmlPublisherTarget;
 import hudson.AbortException;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
@@ -42,24 +41,16 @@ import hudson.model.TaskListener;
  * Execution for {@link PublishHTMLStep}.
  * @author Oleg Nenashev
  */
-public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStepExecution<Void> {
+public class PublishHTMLStepExecution extends SynchronousNonBlockingStepExecution<Void> {
     private static final long serialVersionUID = 1L;
-    
-    @StepContextParameter
-    private transient TaskListener listener;
 
-    @StepContextParameter
-    private transient FilePath ws;
+    private final transient PublishHTMLStep step;
 
-    @StepContextParameter
-    private transient Run build;
+    PublishHTMLStepExecution(PublishHTMLStep step, @Nonnull StepContext context) {
+        super(context);
+        this.step = step;
+    }
 
-    @StepContextParameter
-    private transient Launcher launcher;
-
-    @Inject
-    private transient PublishHTMLStep step;
-    
     @Override
     protected Void run() throws Exception {             
         final HtmlPublisherTarget target = step.getTarget();
@@ -67,8 +58,13 @@ public class PublishHTMLStepExecution extends AbstractSynchronousNonBlockingStep
             throw new AbortException("Cannot publish the report. Target is not specified");
         }
         
-        boolean res = HtmlPublisher.publishReports(build, ws, listener,
-                Collections.singletonList(target), HtmlPublisher.class);
+        boolean res =
+                HtmlPublisher.publishReports(
+                        getContext().get(Run.class),
+                        getContext().get(FilePath.class),
+                        getContext().get(TaskListener.class),
+                        Collections.singletonList(target),
+                        HtmlPublisher.class);
         if (!res) {
             throw new AbortException("Cannot publish HTML files");
         }      

@@ -25,18 +25,26 @@ package htmlpublisher.workflow;
 
 import htmlpublisher.HtmlPublisherTarget;
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.jenkinsci.plugins.workflow.steps.AbstractStepDescriptorImpl;
-import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
+import org.jenkinsci.plugins.workflow.steps.Step;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Publishes HTML reports in Workflows.
  * @author Oleg Nenashev
  */
-public class PublishHTMLStep extends AbstractStepImpl {
+public class PublishHTMLStep extends Step {
     
     private final HtmlPublisherTarget target;
 
@@ -50,16 +58,24 @@ public class PublishHTMLStep extends AbstractStepImpl {
         this.target = target;
     }
 
+    @Override
+    public StepExecution start(StepContext context) throws Exception {
+        return new PublishHTMLStepExecution(this, context);
+    }
+
     @CheckForNull
     public HtmlPublisherTarget getTarget() {
         return target;
     }
     
     @Extension
-    public static class DescriptorImpl extends AbstractStepDescriptorImpl {
+    public static class DescriptorImpl extends StepDescriptor {
 
-        public DescriptorImpl() {
-            super(PublishHTMLStepExecution.class);
+        @Override
+        public Set<? extends Class<?>> getRequiredContext() {
+            Set<Class<?>> context = new HashSet<>();
+            Collections.addAll(context, FilePath.class, Run.class, TaskListener.class);
+            return Collections.unmodifiableSet(context);
         }
 
         @Override
