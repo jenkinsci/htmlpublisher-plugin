@@ -19,7 +19,7 @@ public class HtmlFileNameTest {
     public JenkinsRule j = new JenkinsRule();
 
     @Test
-    public void fileNameWithSpecialCharacters() throws Exception {
+    public void fileNameWithSpecialCharactersAndSingleSlash() throws Exception {
         final String content = "<html><head><title>test</title></head><body>Hello world!</body></html>";
 
         FreeStyleProject job = j.createFreeStyleProject();
@@ -39,6 +39,32 @@ public class HtmlFileNameTest {
         HtmlPage page = client.getPage(job, "report-name");
         HtmlInlineFrame iframe = (HtmlInlineFrame) page.getElementById("myframe");
         assertEquals("subdir/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
+
+        HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
+        assertEquals("Hello world!", pageInIframe.getBody().asText());
+    }
+    
+    @Test
+    public void fileNameWithSpecialCharactersAndMultipleSlashes() throws Exception {
+        final String content = "<html><head><title>test</title></head><body>Hello world!</body></html>";
+
+        FreeStyleProject job = j.createFreeStyleProject();
+
+        job.getBuildersList().add(new CreateFileBuilder("subdir/subdir2/#$&+,;= @.html", content));
+        job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
+            new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false))));
+        job.save();
+
+        j.buildAndAssertSuccess(job);
+
+        JenkinsRule.WebClient client = j.createWebClient();
+        assertEquals(content,
+            client.getPage(job, "report-name/subdir/subdir2/%23%24%26%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
+
+        // published html page(s)
+        HtmlPage page = client.getPage(job, "report-name");
+        HtmlInlineFrame iframe = (HtmlInlineFrame) page.getElementById("myframe");
+        assertEquals("subdir/subdir2/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
         assertEquals("Hello world!", pageInIframe.getBody().asText());
