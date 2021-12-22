@@ -25,7 +25,7 @@ package htmlpublisher.workflow;
 
 import java.util.Collections;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
@@ -46,7 +46,7 @@ public class PublishHTMLStepExecution extends SynchronousNonBlockingStepExecutio
 
     private final transient PublishHTMLStep step;
 
-    PublishHTMLStepExecution(PublishHTMLStep step, @Nonnull StepContext context) {
+    PublishHTMLStepExecution(PublishHTMLStep step, @NonNull StepContext context) {
         super(context);
         this.step = step;
     }

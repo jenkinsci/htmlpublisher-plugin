@@ -74,7 +74,7 @@ import hudson.util.FormValidation;
 import org.apache.tools.ant.types.FileSet;
 import jenkins.model.Jenkins;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 
 /**
@@ -344,7 +344,7 @@ public class HtmlPublisher extends Recorder {
     }
 
     @Override
-    @Nonnull
+    @NonNull
     public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
         if (this.reportTargets.isEmpty()) {
             return Collections.emptyList();
@@ -370,7 +370,7 @@ public class HtmlPublisher extends Recorder {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return "Publish HTML reports";
         }

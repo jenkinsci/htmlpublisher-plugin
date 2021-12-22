@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.servlet.ServletException;
 
 import org.apache.commons.codec.binary.Hex;
@@ -327,7 +327,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return projectArchiveDir;
         }
 
-        private Run getArchiveBuild(@Nonnull Job job) {
+        private Run getArchiveBuild(@NonNull Job job) {
             if (shouldLinkToLastBuild()) {
                 return job.getLastBuild();
             } else {
@@ -344,7 +344,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
          */
-        public @Nonnull HtmlPublisherTarget getHTMLTarget() {
+        public @NonNull HtmlPublisherTarget getHTMLTarget() {
             return HtmlPublisherTarget.this;
         }
 
@@ -442,7 +442,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
          * @return HTML Report description
          */
-        public @Nonnull HtmlPublisherTarget getHTMLTarget() {
+        public @NonNull HtmlPublisherTarget getHTMLTarget() {
             return HtmlPublisherTarget.this;
         }
 
@@ -563,9 +563,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     @Extension
-    @Nonnull
     public static class DescriptorImpl extends Descriptor<HtmlPublisherTarget> {
-        @Nonnull
+        @NonNull
         public String getDisplayName() { return ""; }
     }
 }
