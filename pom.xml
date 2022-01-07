@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.32</version>
+    <version>4.33</version>
     <relativePath />
   </parent>
 
@@ -76,13 +76,6 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>matrix-project</artifactId>
-      <version>1.19</version>
-      <exclusions>
-        <exclusion>
-          <groupId>javax.annotation</groupId>
-          <artifactId>javax.annotation-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -120,7 +113,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-2.289.x</artifactId>
-        <version>1008.vb9e22885c9cf</version>
+        <version>1090.v0a_33df40457a_</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
