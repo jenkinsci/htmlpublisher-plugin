@@ -41,7 +41,7 @@ public class HtmlFileNameTest {
         assertEquals("subdir/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
-        assertEquals("Hello world!", pageInIframe.getBody().asText());
+        assertEquals("Hello world!", pageInIframe.getBody().asNormalizedText());
     }
     
     @Test
@@ -67,6 +67,6 @@ public class HtmlFileNameTest {
         assertEquals("subdir/subdir2/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
-        assertEquals("Hello world!", pageInIframe.getBody().asText());
+        assertEquals("Hello world!", pageInIframe.getBody().asNormalizedText());
     }
 }

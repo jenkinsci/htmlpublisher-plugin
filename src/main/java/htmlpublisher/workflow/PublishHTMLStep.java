@@ -31,8 +31,8 @@ import hudson.model.TaskListener;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -84,7 +84,7 @@ public class PublishHTMLStep extends Step {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public String getDisplayName() {
             return "Publish HTML reports";
         }
