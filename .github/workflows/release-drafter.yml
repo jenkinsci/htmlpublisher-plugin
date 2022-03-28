@@ -4,9 +4,5 @@ on:
     branches:
       - master
 jobs:
-  update_release_draft:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5.17.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+   update_release_draft:
+      uses: .github/.github/workflows/release-drafter.yml@master
