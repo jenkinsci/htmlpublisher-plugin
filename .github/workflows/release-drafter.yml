@@ -5,4 +5,4 @@ on:
       - master
 jobs:
    update_release_draft:
-      uses: .github/.github/workflows/release-drafter.yml@master
+      uses: jenkinsci/.github/.github/workflows/release-drafter.yml@master
