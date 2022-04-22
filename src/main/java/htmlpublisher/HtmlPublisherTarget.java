@@ -93,6 +93,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private Boolean escapeUnderscores;
 
+    private Boolean useWrapperFileDirectly;
+
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
      */
@@ -148,7 +150,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
 
     public boolean getAllowMissing() {
-           return this.allowMissing;
+        return this.allowMissing;
     }
 
     public boolean getEscapeUnderscores() {
@@ -162,6 +164,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setEscapeUnderscores(boolean escapeUnderscores) {
         this.escapeUnderscores = escapeUnderscores;
+    }
+
+    public Boolean getUseWrapperFileDirectly() {
+        if (useWrapperFileDirectly == null){
+            return false;
+        }
+        return useWrapperFileDirectly;
+    }
+
+    @DataBoundSetter
+    public void setUseWrapperFileDirectly(boolean useWrapperFileDirectly) {
+        this.useWrapperFileDirectly = useWrapperFileDirectly;
     }
 
     @DataBoundSetter
@@ -302,7 +316,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                     if (!javadocDir.exists()) {
                         javadocDir = getBuildArchiveDir(run, getLegacySanitizedName());
                     }
-                   // TODO not sure about this change
+                    // TODO not sure about this change
 
                     if (javadocDir.exists()) {
                         for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {

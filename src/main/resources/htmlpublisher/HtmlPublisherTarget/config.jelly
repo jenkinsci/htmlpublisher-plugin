@@ -37,5 +37,8 @@
       <f:entry field="escapeUnderscores" title="${%escapeUnderscores.title}">
         <f:checkbox default="true"/>
       </f:entry>
+    <f:entry field="useWrapperFileDirectly" title="${%useWrapperFileDirectly.title}">
+      <f:checkbox default="true"/>
+    </f:entry>
   </f:advanced>
 </j:jelly>
