@@ -55,7 +55,7 @@ public class HtmlPublisherIntegrationTest {
         final String reportDir = "autogen";
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
-                                   BuildListener listener) throws InterruptedException, IOException {
+                    BuildListener listener) throws InterruptedException, IOException {
                 FilePath ws = build.getWorkspace().child(reportDir);
                 ws.child("tab1.html").write("hello", "UTF-8");
                 ws.child("tab2.html").write("hello", "UTF-8");
@@ -93,7 +93,7 @@ public class HtmlPublisherIntegrationTest {
         final String reportDir = "autogen";
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
-                                   BuildListener listener) throws InterruptedException, IOException {
+                    BuildListener listener) throws InterruptedException, IOException {
                 FilePath ws = build.getWorkspace().child(reportDir);
                 ws.child("afile.html").write("hello", "UTF-8");
                 return true;
@@ -180,6 +180,40 @@ public class HtmlPublisherIntegrationTest {
         AbstractBuild build = j.assertBuildStatus(Result.FAILURE, task);
         assertFalse(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
         assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
+
+    @Test
+    public void testUseWrapperFileDirectly() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("use_wrapper_job");
+        final String reportDir = "autogen_use_wrapper";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("tab1.html").write("hello", "UTF-8");
+                ws.child("tab2.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+
+
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        //default behavior is to not use wrapper file directly
+        target1.setUseWrapperFileDirectly(false);
+        assertFalse(target1.getUseWrapperFileDirectly());
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false);
+        target2.setUseWrapperFileDirectly(true);
+        assertTrue(target2.getUseWrapperFileDirectly());
+
+        //No impact on wrapper generation
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+
+        assertTrue(new File(build.getRootDir(), "htmlreports/tab1/htmlpublisher-wrapper.html").exists());
+        assertTrue(new File(build.getRootDir(), "htmlreports/tab2/htmlpublisher-wrapper.html").exists());
     }
 
     @Test
