@@ -14,6 +14,7 @@ def text = new File(my.dir(), my.getHTMLTarget().getWrapperName()).text
 def actual = Util.toHexString(MessageDigest.getInstance("SHA-1").digest(text.getBytes("UTF-8")))
 
 def expected = null
+def useWrapperFileDirectly = null;
 
 def serveWrapper() {
     // don't actually serve the wrapper file, but use it as data source for the tab links only
@@ -37,7 +38,7 @@ def serveWrapper() {
 
     def idx = 1
     items.each { file ->
-        li(itemsTitle[idx-1], id: "tab${idx}", class: "unselected", onclick: "updateBody('tab${idx}')", value: file.trim())
+        li(itemsTitle[idx - 1], id: "tab${idx}", class: "unselected", onclick: "updateBody('tab${idx}')", value: file.trim())
         idx++
     }
 
@@ -49,12 +50,24 @@ def serveWrapper() {
     raw(footer)
 }
 
+def serveWrapperLegacyDirectly() {
+    // don't actually serve the wrapper file, but use it as data source for the tab links only
+    // this minimized the potential for mischief in the case of legacy archives without checksum
+    st.contentType(value: "text/html;charset=UTF-8")
+
+    def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
+
+    raw(legacyFile.text)
+}
+
 if (my instanceof HtmlPublisherTarget.HTMLBuildAction) {
     // this is a build action, so needs to have its checksum checked
     expected = my.wrapperChecksum
+    useWrapperFileDirectly = my.getHTMLTarget().useWrapperFileDirectly
 } else if (my instanceof HtmlPublisherTarget.HTMLAction && my.actualBuildAction) {
     // this is a project action serving a build-level report
     expected = my.actualBuildAction.wrapperChecksum
+    useWrapperFileDirectly = my.getHTMLTarget().useWrapperFileDirectly
 } // else this is a project action serving a project-level report, which is considered safe
 
 if (expected == null) {
@@ -63,10 +76,14 @@ if (expected == null) {
 } else {
     if (expected == actual) {
         // checksum expected and matches
-        serveWrapper()
+        if (useWrapperFileDirectly) {
+            serveWrapperLegacyDirectly()
+        } else {
+            serveWrapper()
+        }
     } else {
         l.layout {
-            l.header(title:"Checksum mismatch")
+            l.header(title: "Checksum mismatch")
             l.main_panel {
                 h1(_("Checksum mismatch")) {
                     l.icon(class: 'icon-error icon-xlg')
