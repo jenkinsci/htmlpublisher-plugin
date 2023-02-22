@@ -263,7 +263,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getIconFileName() {
-            return dir().exists() ? "graph.gif" : null;
+            return dir().exists() ? "symbol-document-text" : null;
         }
 
         public String getBackToName() {
@@ -282,7 +282,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
          * Serves HTML reports.
          */
         public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-            DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "graph.gif", false);
+            DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "symbol-document-text", false);
             if (req.getRestOfPath().isEmpty()) {
                 throw HttpResponses.forwardToView(this, "index.jelly");
             }
