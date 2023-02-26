@@ -167,6 +167,7 @@ public class PublishHTMLStepTest {
         HtmlPublisherTarget.HTMLBuildAction report = run.getAction(HtmlPublisherTarget.HTMLBuildAction.class);
         assertNull("Report should be missing", report);
         r.assertLogContains("Specified HTML directory '" + missingReportDirFile + "' does not exist.", run);
+        r.assertLogNotContains("STEP_AFTER_PUBLISH_HTML", run);
     }
 
     @Test
@@ -180,6 +181,7 @@ public class PublishHTMLStepTest {
         r.assertBuildStatus(Result.SUCCESS, run);
         HtmlPublisherTarget.HTMLBuildAction report = run.getAction(HtmlPublisherTarget.HTMLBuildAction.class);
         assertNull("Report should be missing", report);
+        r.assertLogContains("STEP_AFTER_PUBLISH_HTML", run);
     }
 
     private void writeTestHTML(String fileName) throws Exception {
@@ -205,7 +207,8 @@ public class PublishHTMLStepTest {
                 + "node('slave') {\n"
                 + "  publishHTML(target: [allowMissing: " + target.getAllowMissing() +
                   ", keepAll: " + target.getKeepAll() + ", reportDir: '" + target.getReportDir() +
-                  "', reportFiles: '" + target.getReportFiles() + "', reportName: '" + target.getReportName() + "']) \n"
+                  "', reportFiles: '" + target.getReportFiles() + "', reportName: '" + target.getReportName() + "']) \n" +
+                  "  echo 'STEP_AFTER_PUBLISH_HTML'"
                 + "}", true));
         QueueTaskFuture<WorkflowRun> runFuture = job.scheduleBuild2(0);
         assertThat("build was actually scheduled", runFuture, Matchers.notNullValue());
