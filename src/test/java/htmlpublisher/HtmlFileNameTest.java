@@ -9,8 +9,8 @@ import org.junit.Test;
 import org.jvnet.hudson.test.CreateFileBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import com.gargoylesoftware.htmlunit.html.HtmlInlineFrame;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlInlineFrame;
+import org.htmlunit.html.HtmlPage;
 
 import hudson.model.FreeStyleProject;
 
