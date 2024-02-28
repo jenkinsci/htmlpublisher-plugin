@@ -94,6 +94,22 @@
       <artifactId>workflow-durable-task-step</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.18.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>access-modifier-suppressions</artifactId>
+      <version>${access-modifier-checker.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>access-modifier-annotation</artifactId>
+      <version>1.33</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
