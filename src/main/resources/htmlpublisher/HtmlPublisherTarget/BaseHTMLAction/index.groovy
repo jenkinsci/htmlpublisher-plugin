@@ -3,6 +3,7 @@ package htmlpublisher.HtmlPublisherTarget.BaseHTMLAction
 import htmlpublisher.HtmlPublisher
 import htmlpublisher.HtmlPublisherTarget
 import hudson.Util
+import hudson.model.Descriptor
 
 import java.security.MessageDigest
 
@@ -56,6 +57,30 @@ def serveWrapperLegacyDirectly() {
     st.contentType(value: "text/html;charset=UTF-8")
 
     def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
+
+    def scriptPattern = legacyFile.text =~ /(<script type="text\/javascript">document.getElementById\("hudson_link"\).innerHTML="Back to )(.*[<>"\\].*)(";<\/script>)/
+
+    if (scriptPattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Job Name", "JobName")
+    }
+
+    def tabPattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")(.*[<>"\\].*)(">)(.*[<>"\\].*)(<\/li>)/
+
+    if (tabPattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
+
+    def valuePattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")([^<]+)(">)(.*[<>"\\].*)(<\/li>)/
+
+    if (valuePattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
+
+    def titlePattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")(.*[<>"\\].*)(">)([^<]+)(<\/li>)/
+
+    if (titlePattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
 
     raw(legacyFile.text)
 }

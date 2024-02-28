@@ -1,0 +1,8 @@
+Started by user unknown or anonymous
+Running as SYSTEM
+Building in workspace workspace/"+alert(1)+"
+["+alert(1)+"] $ /bin/sh -xe /tmp/jenkins2940273657363065808.sh
++ echo Test
+[htmlpublisher] Archiving HTML reports...
+[htmlpublisher] Archiving at BUILD level workspace/"+alert(1)+" to jobs/"+alert(1)+"/builds/1/htmlreports/HTML_20Report
+Finished: SUCCESS

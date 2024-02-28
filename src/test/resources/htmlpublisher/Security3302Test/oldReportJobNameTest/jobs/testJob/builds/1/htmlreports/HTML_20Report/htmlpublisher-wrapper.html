@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html" />
+<!-- CSS Tabs is licensed under Creative Commons Attribution 3.0 - http://creativecommons.org/licenses/by/3.0/ -->
+<style type="text/css">
+
+body {
+font: 100% verdana, arial, sans-serif;
+background-color: #fff;
+}
+
+/* begin css tabs */
+
+ul#tabnav { /* general settings */
+text-align: left; /* set to left, right or center */
+margin: 8px 0 0 0; /* set margins as desired */
+font: bold 11px verdana, arial, sans-serif; /* set font as desired */
+border-bottom: 1px solid #6c6; /* set border COLOR as desired */
+list-style-type: none;
+padding: 3px 10px 0px 10px;
+}
+
+ul#tabnav li { /* do not change */
+display: inline-block;
+}
+
+ul#tabnav li.selected { /* settings for selected tab */
+border-bottom: 1px solid #fff; /* set border color to page background color */
+background-color: #fff; /* set background color to match above border color */
+}
+
+
+ul#tabnav li { /* settings for all tab links */
+padding: 3px 4px;
+border: 1px solid #6c6; /* set border COLOR as desired; usually matches border color specified in #tabnav */
+border-bottom: 1px solid #cfc;
+background-color: #cfc; /* set unselected tab background color as desired */
+color: #666; /* set unselected tab link color as desired */
+margin-right: 0px; /* set additional spacing between tabs as desired */
+text-decoration: none;
+cursor: pointer;
+}
+
+ul#tabnav li:hover { /* settings for hover effect */
+background: #afa; /* set desired hover color */
+}
+
+/* end css tabs */
+
+/* FF 100% height iframe */
+html, body, div, iframe { margin:0; padding:0; }
+iframe { display:block; width:100%; border:none; }
+
+h1
+{
+    display: inline;
+    float: left;
+    font-size: small;
+    margin: 0;
+    padding: 0 10px;
+}
+
+h2
+{
+    display: inline;
+    float: right;
+    font-size: small;
+    margin: 0;
+    padding: 0 10px;
+}
+
+</style>
+
+<script type="text/javascript">
+function updateBody(tabId, page) {
+    document.getElementById(selectedTab).setAttribute("class", "unselected");
+    tab = document.getElementById(tabId)
+    tab.setAttribute("class", "selected");
+    selectedTab = tabId;
+    iframe = document.getElementById("myframe");
+    iframe.src = encodeURIComponent(tab.getAttribute("value")).replace(/%2F/g, '/');
+}
+function init(tabId){
+	updateBody(tabId);
+	updateViewport();
+	
+	window.onresize = updateViewport;
+}
+
+function updateViewport(){
+	 var viewportheight;
+
+	 // the more standards compliant browsers (mozilla/netscape/opera/IE7) use window.innerWidth and window.innerHeight
+
+	 if (typeof window.innerWidth != 'undefined')
+	 {
+	      viewportheight = window.innerHeight
+	 }
+
+	// IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+
+	 else if (typeof document.documentElement != 'undefined'
+	     && typeof document.documentElement.clientWidth !=
+	     'undefined' && document.documentElement.clientWidth != 0)
+	 {
+	       viewportheight = document.documentElement.clientHeight
+	 }
+	// older versions of IE
+	 else
+	 { 
+	       viewportheight = document.getElementsByTagName('body')[0].clientHeight
+	 }
+	
+	iframe = document.getElementById("myframe");
+	iframe.style.height = (viewportheight-30)+'px';
+}
+var selectedTab = "tab1"
+</script>
+
+</head>
+
+<body onload="init('tab1');">
+
+<h1><a id="hudson_link" href="#"></a></h1>
+<h2><a id="zip_link" href="#">Zip</a></h2>
+
+<ul id="tabnav">
+<script type="text/javascript">document.getElementById("hudson_link").innerHTML="Back to "+alert(1)+"";</script>
+<script type="text/javascript">document.getElementById("hudson_link").onclick = function() { history.go(-1); return false; };</script>
+<script type="text/javascript">document.getElementById("zip_link").href="*zip*/HTML_20Report.zip";</script>
+</ul>
+<div>
+<iframe id="myframe" height="100%" width="100%" frameborder="0"></iframe>
+</div>
+
+</body>
+</html>

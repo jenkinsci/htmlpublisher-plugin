@@ -24,7 +24,7 @@ public class HtmlFileNameTest {
 
         FreeStyleProject job = j.createFreeStyleProject();
 
-        job.getBuildersList().add(new CreateFileBuilder("subdir/#$&+,;= @.html", content));
+        job.getBuildersList().add(new CreateFileBuilder("subdir/#$+,;= @.html", content));
         job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
             new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false))));
         job.save();
@@ -33,12 +33,12 @@ public class HtmlFileNameTest {
 
         JenkinsRule.WebClient client = j.createWebClient();
         assertEquals(content,
-            client.getPage(job, "report-name/subdir/%23%24%26%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
+            client.getPage(job, "report-name/subdir/%23%24%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
 
         // published html page(s)
         HtmlPage page = client.getPage(job, "report-name");
         HtmlInlineFrame iframe = (HtmlInlineFrame) page.getElementById("myframe");
-        assertEquals("subdir/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
+        assertEquals("subdir/%23%24%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
         assertEquals("Hello world!", pageInIframe.getBody().asNormalizedText());
@@ -50,7 +50,7 @@ public class HtmlFileNameTest {
 
         FreeStyleProject job = j.createFreeStyleProject();
 
-        job.getBuildersList().add(new CreateFileBuilder("subdir/subdir2/#$&+,;= @.html", content));
+        job.getBuildersList().add(new CreateFileBuilder("subdir/subdir2/#$+,;= @.html", content));
         job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
             new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false))));
         job.save();
@@ -59,12 +59,12 @@ public class HtmlFileNameTest {
 
         JenkinsRule.WebClient client = j.createWebClient();
         assertEquals(content,
-            client.getPage(job, "report-name/subdir/subdir2/%23%24%26%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
+            client.getPage(job, "report-name/subdir/subdir2/%23%24%2B%2C%3B%3D%20%40.html").getWebResponse().getContentAsString());
 
         // published html page(s)
         HtmlPage page = client.getPage(job, "report-name");
         HtmlInlineFrame iframe = (HtmlInlineFrame) page.getElementById("myframe");
-        assertEquals("subdir/subdir2/%23%24%26%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
+        assertEquals("subdir/subdir2/%23%24%2B%2C%3B%3D%20%40.html", iframe.getAttribute("src"));
 
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
         assertEquals("Hello world!", pageInIframe.getBody().asNormalizedText());
