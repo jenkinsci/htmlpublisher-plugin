@@ -5,20 +5,42 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
 import hudson.model.queue.QueueTaskFuture;
+import hudson.remoting.VirtualChannel;
+import hudson.slaves.DumbSlave;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.slaves.JNLPLauncher;
+import hudson.slaves.RetentionStrategy;
+import jenkins.MasterToSlaveFileCallable;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.BuildWatcher;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TemporaryDirectoryAllocator;
 import org.jvnet.hudson.test.TestBuilder;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -26,6 +48,20 @@ import static org.junit.Assert.*;
 public class HtmlPublisherIntegrationTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
+    @Rule
+    public BuildWatcher buildWatcher = new BuildWatcher();
+
+    public TemporaryDirectoryAllocator tmp = new TemporaryDirectoryAllocator();
+    private GenericContainer agentContainer;
+    private DumbSlave agent;
+
+    @After
+    public void dispose() throws IOException, InterruptedException {
+        tmp.dispose();
+        if (agentContainer != null) {
+            agentContainer.stop();
+        }
+    }
 
     /**
      * Makes sure that the configuration survives the round trip.
@@ -82,6 +118,39 @@ public class HtmlPublisherIntegrationTest {
         // tab2 should not include dummy
         assertTrue(tab2Files.contains("tab2.html"));
         assertFalse(tab2Files.contains("dummy.html"));
+    }
+
+    @Test @Issue("SECURITY-3303")
+    public void testNotFollowingSymlinks() throws Exception {
+        createDockerAgent();
+        final File directoryOnController = tmp.allocate();
+        FileUtils.write(new File(directoryOnController, "test.txt"), "test", StandardCharsets.UTF_8);
+        final String directoryOnControllerPath = directoryOnController.getAbsolutePath();
+        FreeStyleProject p = j.createFreeStyleProject();
+        p.getBuildersList().add(new TestBuilder() {
+            @Override
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath workspace = build.getWorkspace();
+                workspace.act(new MakeSymlink(directoryOnControllerPath));
+                workspace.child("test3.txt").write("Hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "", "tab1/test.txt,tab1/test2.txt,**/test3.txt", true, false, true);
+        p.getPublishersList().add(new HtmlPublisher(Arrays.asList(target1)));
+        p.setAssignedLabel(Label.get("agent"));
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+        File base = new File(build.getRootDir(), "htmlreports");
+        String[] list = base.list();
+        assertNotNull(list);
+        assertThat(Arrays.asList(list), not(empty()));
+        File tab1 = new File(base, "tab1");
+        list = tab1.list();
+        assertNotNull(list);
+        assertThat(Arrays.asList(list), not(empty()));
+
+        File reports = new File(tab1, "tab1");
+        assertFalse(reports.exists());
     }
 
     @Test
@@ -246,5 +315,41 @@ public class HtmlPublisherIntegrationTest {
         j.jenkins.getGlobalNodeProperties().add(prop);
     }
 
+    private void createDockerAgent() throws Exception {
+        assumeTrue("Needs Docker", DockerClientFactory.instance().isDockerAvailable());
+        j.jenkins.setSlaveAgentPort(0);
+        int port = j.jenkins.getTcpSlaveAgentListener().getAdvertisedPort();
+        synchronized (j.jenkins) {
+            agent = new DumbSlave("dockeragentOne", "/home/jenkins/work", new JNLPLauncher(true));
+            agent.setLabelString("agent");
+            agent.setRetentionStrategy(RetentionStrategy.NOOP);
+            j.jenkins.addNode(agent);
+        }
+        Map<String, String> env = Map.of("JENKINS_URL", JNLPLauncher.getInboundAgentUrl(),
+                "JENKINS_SECRET", agent.getComputer().getJnlpMac(),
+                "JENKINS_AGENT_NAME", agent.getNodeName(),
+                "JENKINS_AGENT_WORKDIR", agent.getRemoteFS());
+        System.out.println(env);
 
+        agentContainer = new GenericContainer<>("jenkins/inbound-agent:jdk" + System.getProperty("java.specification.version"))
+                .withEnv(env)
+                .withNetworkMode("host").withLogConsumer(outputFrame -> System.out.print(outputFrame.getUtf8String()));
+        //agentContainer.getHost()
+        agentContainer.start();
+        j.waitOnline(agent);
+    }
+
+    static class MakeSymlink extends MasterToSlaveFileCallable<Void> {
+        final String target;
+
+        MakeSymlink(String target) {
+            this.target = target;
+        }
+
+        @Override
+        public Void invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+            Files.createSymbolicLink(Paths.get(f.getAbsolutePath(), "tab1"), Paths.get(target));
+            return null;
+        }
+    }
 }

@@ -35,6 +35,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -44,8 +46,11 @@ import java.util.Collections;
 import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.util.DirScanner;
+import jenkins.util.SystemProperties;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -84,6 +89,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * @author Mike Rooney
  */
 public class HtmlPublisher extends Recorder {
+
+    /**
+     * Restores old behavior before SECURITY-3303
+     */
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Yes it should, but this allows the ability to change it via script in runtime.")
+    static /*almost final*/ boolean FOLLOW_SYMLINKS = SystemProperties.getBoolean(HtmlPublisher.class.getName() + ".FOLLOW_SYMLINKS", false);
     private final List<HtmlPublisherTarget> reportTargets;
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
@@ -238,8 +249,13 @@ public class HtmlPublisher extends Recorder {
                     // We are only keeping one copy at the project level, so remove the old one.
                     targetDir.deleteRecursive();
                 }
-
-                if (archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir) == 0) {
+                int copied = 0;
+                if (FOLLOW_SYMLINKS) {
+                    copied = archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir);
+                } else {
+                    copied = archiveDir.copyRecursiveTo(dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS), targetDir, reportTarget.getIncludes());
+                }
+                if (copied == 0) {
                     if (!allowMissing) {
                         listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
                         final Result buildResult = build.getResult();
@@ -252,8 +268,10 @@ public class HtmlPublisher extends Recorder {
                         continue;
                     }
                 }
-            } catch (IOException e) {
-                Util.displayIOException(e, listener);
+            } catch (Exception e) {
+                if (e instanceof IOException) {
+                    Util.displayIOException((IOException) e, listener);
+                }
                 e.printStackTrace(listener.fatalError("HTML Publisher failure"));
                 build.setResult(Result.FAILURE);
                 return true;
@@ -365,6 +383,12 @@ public class HtmlPublisher extends Recorder {
             }
             return actions;
         }
+    }
+
+
+    @SuppressRestrictedWarnings(NoExternalUse.class)
+    public static DirScanner dirScannerGlob(String includes, String excludes, boolean useDefaultExcludes, OpenOption... openOptions) throws Exception {
+        return new DirScanner.Glob(includes, excludes, useDefaultExcludes, openOptions);
     }
 
     @Extension
