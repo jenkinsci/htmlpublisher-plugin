@@ -81,6 +81,8 @@ import jenkins.model.Jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import static hudson.Functions.htmlAttributeEscape;
+
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -130,7 +132,7 @@ public class HtmlPublisher extends Recorder {
         return Util.toHexString(sha1.digest());
     }
 
-    public List<String> readFile(String filePath) throws 
+    public List<String> readFile(String filePath) throws
             java.io.IOException {
         return readFile(filePath, this.getClass());
     }
@@ -302,7 +304,7 @@ public class HtmlPublisher extends Recorder {
                 // On windows file paths contains back slashes, but
                 // in the HTML file we do not want them, so replace them with forward slash
                 report = report.replace("\\", "/");
-	
+
                 // Ignore blank report names caused by trailing or double commas.
                 if (report.isEmpty()) {
                     continue;
@@ -318,13 +320,13 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportFile = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportFile, titles, j) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + htmlAttributeEscape(report) + "\">" + htmlAttributeEscape(getTitle(reportFile, titles, j)) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Jenkins.get().getRootUrl();
             Job job = build.getParent();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
+            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + htmlAttributeEscape(job.getName()) + "\";</script>");
             // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
             if (hudsonUrl == null) {
                 reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");

@@ -1,0 +1,44 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<build>
+  <actions>
+    <hudson.model.CauseAction>
+      <causeBag class="linked-hash-map">
+        <entry>
+          <hudson.model.Cause_-UserIdCause/>
+          <int>1</int>
+        </entry>
+      </causeBag>
+    </hudson.model.CauseAction>
+    <htmlpublisher.HtmlPublisherTarget_-HTMLBuildAction plugin="htmlpublisher@1.33-SNAPSHOT">
+      <actualHtmlPublisherTarget>
+        <reportName>HTML Report</reportName>
+        <reportDir></reportDir>
+        <reportFiles>index.html</reportFiles>
+        <alwaysLinkToLastBuild>false</alwaysLinkToLastBuild>
+        <reportTitles></reportTitles>
+        <keepAll>true</keepAll>
+        <allowMissing>false</allowMissing>
+        <includes>**/*</includes>
+        <escapeUnderscores>true</escapeUnderscores>
+        <useWrapperFileDirectly>true</useWrapperFileDirectly>
+      </actualHtmlPublisherTarget>
+      <outer-class reference="../actualHtmlPublisherTarget"/>
+      <wrapperChecksum>bb013837dd6fed1ea7ef00d584484d62e90b64a1</wrapperChecksum>
+      <outer-class defined-in="htmlpublisher.HtmlPublisherTarget$HTMLBuildAction" reference="../actualHtmlPublisherTarget"/>
+    </htmlpublisher.HtmlPublisherTarget_-HTMLBuildAction>
+  </actions>
+  <queueId>1</queueId>
+  <timestamp>1702036826488</timestamp>
+  <startTime>1702036826496</startTime>
+  <result>SUCCESS</result>
+  <duration>99</duration>
+  <charset>UTF-8</charset>
+  <keepLog>false</keepLog>
+  <builtOn></builtOn>
+  <workspace>workspace/&quot;+alert(1)+&quot;</workspace>
+  <hudsonVersion>2.387.3</hudsonVersion>
+  <scm class="hudson.scm.NullChangeLogParser"/>
+  <culprits class="java.util.Collections$UnmodifiableSet">
+    <c class="sorted-set"/>
+  </culprits>
+</build>
