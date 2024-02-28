@@ -1,15 +1,22 @@
 package htmlpublisher;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import javax.servlet.ServletException;
-
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Action;
+import hudson.model.AbstractItem;
+import hudson.model.Run;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.Job;
+import hudson.model.ProminentProjectAction;
+import hudson.model.AbstractBuild;
+import hudson.model.InvisibleAction;
+import hudson.model.Descriptor;
+import hudson.util.HttpResponses;
+import jenkins.model.RunAction2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
@@ -20,23 +27,15 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.owasp.encoder.Encode;
 
-import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
+import javax.servlet.ServletException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractItem;
-import hudson.model.Action;
-import hudson.model.Descriptor;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.InvisibleAction;
-import hudson.model.Job;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Run;
-import hudson.util.HttpResponses;
-import jenkins.model.RunAction2;
+import static hudson.Functions.htmlAttributeEscape;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -48,7 +47,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     /**
      * The name of the report to display for the build/project, such as "Code Coverage"
      */
-    private final String reportName;
+    private String reportName;
 
     /**
      * The path to the HTML report directory relative to the workspace.
@@ -183,15 +182,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         this.reportTitles = StringUtils.trim(reportTitles);
     }
 
-    /**
-     * Actually not safe, this allowed directory traversal (SECURITY-784).
-     * @return Returns a string with replaced whitespaces by underscores.
-     */
-    private String getLegacySanitizedName() {
-        String safeName = this.reportName;
-        safeName = safeName.replace(" ", "_");
-        return safeName;
-    }
+    //Add this for testing purposes
+    public void setReportName(String reportName) {this.reportName = StringUtils.trim(reportName);}
 
     public String getSanitizedName() {
         return sanitizeReportName(this.reportName, getEscapeUnderscores());
@@ -313,11 +305,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 
-                    if (!javadocDir.exists()) {
-                        javadocDir = getBuildArchiveDir(run, getLegacySanitizedName());
-                    }
-                    // TODO not sure about this change
-
                     if (javadocDir.exists()) {
                         for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
                             if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
@@ -329,15 +316,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 }
             }
 
-            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
             File projectArchiveDir = getProjectArchiveDir(this.project);
-            if (projectArchiveDir.exists()) {
-                return projectArchiveDir;
-            }
-            File legacyProjectArchiveDir = getProjectArchiveDir(this.project, getLegacySanitizedName());
-            if (legacyProjectArchiveDir.exists()) {
-                return legacyProjectArchiveDir;
-            }
             return projectArchiveDir;
         }
 
@@ -440,15 +419,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         protected File dir() {
-            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
             File buildArchiveDir = getBuildArchiveDir(this.build);
-            if (buildArchiveDir.exists()) {
-                return buildArchiveDir;
-            }
-            File legacyBuildArchiveDir = getBuildArchiveDir(this.build, getLegacySanitizedName());
-            if (legacyBuildArchiveDir.exists()) {
-                return legacyBuildArchiveDir;
-            }
             return buildArchiveDir;
         }
 
