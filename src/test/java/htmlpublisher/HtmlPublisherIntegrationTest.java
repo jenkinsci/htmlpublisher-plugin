@@ -328,7 +328,8 @@ public class HtmlPublisherIntegrationTest {
         Map<String, String> env = Map.of("JENKINS_URL", JNLPLauncher.getInboundAgentUrl(),
                 "JENKINS_SECRET", agent.getComputer().getJnlpMac(),
                 "JENKINS_AGENT_NAME", agent.getNodeName(),
-                "JENKINS_AGENT_WORKDIR", agent.getRemoteFS());
+                "JENKINS_AGENT_WORKDIR", agent.getRemoteFS(),
+                "JENKINS_WEB_SOCKET", "true");
         System.out.println(env);
 
         agentContainer = new GenericContainer<>("jenkins/inbound-agent:jdk" + System.getProperty("java.specification.version"))
