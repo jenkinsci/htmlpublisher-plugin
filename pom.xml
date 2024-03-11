@@ -104,11 +104,15 @@
       <groupId>org.kohsuke</groupId>
       <artifactId>access-modifier-suppressions</artifactId>
       <version>${access-modifier-checker.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.kohsuke</groupId>
-      <artifactId>access-modifier-annotation</artifactId>
-      <version>1.33</version>
+      <!-- Not needed at runtime -->
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <!-- Upper bounds and comes from core -->
+          <groupId>org.kohsuke</groupId>
+          <artifactId>access-modifier-annotation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <dependencyManagement>
