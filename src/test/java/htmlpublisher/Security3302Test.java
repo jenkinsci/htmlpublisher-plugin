@@ -42,7 +42,8 @@ public class Security3302Test {
                 "index.html",
                 true,
                 false,
-                false
+                false,
+            ""
         );
 
         target.setUseWrapperFileDirectly(true);
@@ -175,7 +176,8 @@ public class Security3302Test {
                 "",
                 true,
                 false,
-                false
+                false,
+            ""
         );
 
         target.setUseWrapperFileDirectly(true);
