@@ -75,6 +75,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      */
     private final boolean allowMissing;
 
+
+    /**
+     *  The path of an icon to use for the HTML report in the sidebar (relative to reportDir)
+     */
+    private final String iconPath;
+
     /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
      */
@@ -95,11 +101,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private Boolean useWrapperFileDirectly;
 
     /**
-     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
+     * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean, java.lang.String)}.
      */
     @Deprecated
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing) {
-        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing);
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean allowMissing, String iconPath) {
+        this(reportName, reportDir, reportFiles, keepAll, false, allowMissing, iconPath);
     }
 
     public String getReportTitles() {
@@ -115,16 +121,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      * @param alwaysLinkToLastBuild If true, the job action will refer the latest build.
      *      Otherwise, the latest successful one will be referenced
      * @param allowMissing If true, blocks the build failure if the report is missing
+     * @param iconPath The path of an icon to use for the HTML report in the sidebar (relative to reportDir)
      * @since 1.4
      */
     @DataBoundConstructor
-    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing) {
+    public HtmlPublisherTarget(String reportName, String reportDir, String reportFiles, boolean keepAll, boolean alwaysLinkToLastBuild, boolean allowMissing, String iconPath) {
         this.reportName = StringUtils.trim(reportName);
         this.reportDir = StringUtils.trim(reportDir);
         this.reportFiles = StringUtils.trim(reportFiles);
         this.keepAll = keepAll;
         this.alwaysLinkToLastBuild = alwaysLinkToLastBuild;
         this.allowMissing = allowMissing;
+        this.iconPath = StringUtils.trim(iconPath);
     }
 
     public String getReportName() {
@@ -150,6 +158,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     public boolean getAllowMissing() {
         return this.allowMissing;
+    }
+
+    public String getIconPath() {
+        return this.iconPath;
     }
 
     public boolean getEscapeUnderscores() {
@@ -253,11 +265,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             String action = actualHtmlPublisherTarget.reportName;
             return dir().exists() ? action : null;
         }
-
-        public String getIconFileName() {
-            return dir().exists() ? "symbol-document-text" : null;
-        }
-
         public String getBackToName() {
             return Encode.forHtml(project.getDisplayName());
         }
@@ -326,6 +333,16 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             } else {
                 return job.getLastSuccessfulBuild();
             }
+        }
+
+        public String getIconFileName() {
+            String icon;
+            if (StringUtils.isNotBlank(super.actualHtmlPublisherTarget.iconPath)) {
+                icon = project.getUrl() + dir().getName() + "/" + super.actualHtmlPublisherTarget.iconPath;
+            } else {
+                icon = "symbol-document-text";
+            }
+            return dir().exists() ? icon : null;
         }
 
         @Override
@@ -422,6 +439,17 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             File buildArchiveDir = getBuildArchiveDir(this.build);
             return buildArchiveDir;
         }
+
+        public String getIconFileName() {
+            String icon;
+            if (StringUtils.isNotBlank(super.actualHtmlPublisherTarget.iconPath)) {
+                icon = build.getUrl() + dir().getName() + "/" + super.actualHtmlPublisherTarget.iconPath;
+            } else {
+                icon = "symbol-document-text";
+            }
+            return dir().exists() ? icon : null;
+        }
+
 
         /**
          * Gets {@link HtmlPublisherTarget}, for which the action has been created.
