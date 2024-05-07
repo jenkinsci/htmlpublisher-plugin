@@ -284,6 +284,30 @@ public class HtmlPublisherIntegrationTest {
         assertTrue(new File(build.getRootDir(), "htmlreports/tab1/htmlpublisher-wrapper.html").exists());
         assertTrue(new File(build.getRootDir(), "htmlreports/tab2/htmlpublisher-wrapper.html").exists());
     }
+    
+    @Test
+    public void testMultithreaded() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("afile.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true);
+        target1.setNumberOfThreads(2);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+        target2.setNumberOfThreads(2);
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
 
     @Test
     public void testPublishesTwoReportsOneJob() throws Exception {

@@ -93,6 +93,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private Boolean escapeUnderscores;
 
     private Boolean useWrapperFileDirectly;
+    
+    private Integer numberOfThreads;
 
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
@@ -175,6 +177,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setUseWrapperFileDirectly(boolean useWrapperFileDirectly) {
         this.useWrapperFileDirectly = useWrapperFileDirectly;
+    }
+    
+    public Integer getNumberOfThreads() {
+        if (this.numberOfThreads == null) {
+            return 0;
+        }
+        return this.numberOfThreads;
+    }
+
+    @DataBoundSetter
+    public void setNumberOfThreads(Integer numberOfThreads) {
+        this.numberOfThreads = numberOfThreads;
     }
 
     @DataBoundSetter

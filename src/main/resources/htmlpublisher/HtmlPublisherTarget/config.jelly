@@ -40,5 +40,8 @@
     <f:entry field="useWrapperFileDirectly" title="${%useWrapperFileDirectly.title}">
       <f:checkbox default="true"/>
     </f:entry>
+    <f:entry field="numberOfThreads" title="${%numberOfThreads.title}">
+      <f:number/>
+    </f:entry>
   </f:advanced>
 </j:jelly>

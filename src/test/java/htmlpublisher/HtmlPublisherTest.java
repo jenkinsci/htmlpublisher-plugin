@@ -34,4 +34,22 @@ public class HtmlPublisherTest {
         assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
 
     }
+    
+    @Test
+    public void testNumberOfThreads() {
+        HtmlPublisherTarget target = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
+        
+        // Test default behavior
+        assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
+        
+        target.setNumberOfThreads(null);
+        assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
+        
+        // Test explicit value
+        target.setNumberOfThreads(0);
+        assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
+
+        target.setNumberOfThreads(1);
+        assertEquals(target.getNumberOfThreads(), Integer.valueOf(1));
+    }
 }
