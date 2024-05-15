@@ -94,7 +94,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private Boolean useWrapperFileDirectly;
     
-    private Integer numberOfThreads;
+    private int numberOfThreads = 0;
 
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
@@ -180,14 +180,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     }
     
     public Integer getNumberOfThreads() {
-        if (this.numberOfThreads == null) {
-            return 0;
-        }
         return this.numberOfThreads;
     }
 
     @DataBoundSetter
-    public void setNumberOfThreads(Integer numberOfThreads) {
+    public void setNumberOfThreads(int numberOfThreads) {
         this.numberOfThreads = numberOfThreads;
     }
 

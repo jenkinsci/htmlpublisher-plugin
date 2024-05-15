@@ -42,9 +42,6 @@ public class HtmlPublisherTest {
         // Test default behavior
         assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
         
-        target.setNumberOfThreads(null);
-        assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
-        
         // Test explicit value
         target.setNumberOfThreads(0);
         assertEquals(target.getNumberOfThreads(), Integer.valueOf(0));
