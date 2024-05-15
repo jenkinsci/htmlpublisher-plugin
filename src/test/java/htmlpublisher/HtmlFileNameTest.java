@@ -26,7 +26,7 @@ public class HtmlFileNameTest {
 
         job.getBuildersList().add(new CreateFileBuilder("subdir/#$+,;= @.html", content));
         job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
-            new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false))));
+            new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false, ""))));
         job.save();
 
         j.buildAndAssertSuccess(job);
@@ -52,7 +52,7 @@ public class HtmlFileNameTest {
 
         job.getBuildersList().add(new CreateFileBuilder("subdir/subdir2/#$+,;= @.html", content));
         job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
-            new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false))));
+            new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false, ""))));
         job.save();
 
         j.buildAndAssertSuccess(job);

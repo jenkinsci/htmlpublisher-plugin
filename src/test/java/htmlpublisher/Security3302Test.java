@@ -42,14 +42,15 @@ public class Security3302Test {
                 "index.html",
                 true,
                 false,
-                false
+                false,
+            ""
         );
 
         target.setUseWrapperFileDirectly(true);
         target.setEscapeUnderscores(true);
         target.setReportTitles("");
         target.setIncludes("**/*");
-        
+
         List<HtmlPublisherTarget> reportTargets = new ArrayList<>();
         reportTargets.add(target);
 
@@ -125,7 +126,8 @@ public class Security3302Test {
                 "test.txt",
                 true,
                 false,
-                false
+                false,
+                ""
         );
 
         target.setUseWrapperFileDirectly(true);
@@ -174,7 +176,8 @@ public class Security3302Test {
                 "",
                 true,
                 false,
-                false
+                false,
+            ""
         );
 
         target.setUseWrapperFileDirectly(true);

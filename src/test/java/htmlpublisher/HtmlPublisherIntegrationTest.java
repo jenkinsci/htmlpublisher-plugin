@@ -70,8 +70,8 @@ public class HtmlPublisherIntegrationTest {
     public void testConfigRoundtrip() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject();
         HtmlPublisherTarget[] l = {
-                new HtmlPublisherTarget("a", "b", "c", true, true, false),
-                new HtmlPublisherTarget("", "", "", false, false, false)
+                new HtmlPublisherTarget("a", "b", "c", true, true, false, "d"),
+                new HtmlPublisherTarget("", "", "", false, false, false, "")
         };
 
         p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
@@ -81,8 +81,8 @@ public class HtmlPublisherIntegrationTest {
         HtmlPublisher r = p.getPublishersList().get(HtmlPublisher.class);
         assertEquals(2, r.getReportTargets().size());
 
-        j.assertEqualBeans(l[0], r.getReportTargets().get(0), "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
-        j.assertEqualBeans(l[1], r.getReportTargets().get(1), "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing");
+        j.assertEqualBeans(l[0], r.getReportTargets().get(0), "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing,iconPath");
+        j.assertEqualBeans(l[1], r.getReportTargets().get(1), "reportName,reportDir,reportFiles,keepAll,alwaysLinkToLastBuild,allowMissing,iconPath");
     }
 
     @Test
@@ -99,10 +99,10 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, "");
         //default behavior is include all
         target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false, "");
         String includes = "tab2.html";
         target2.setIncludes(includes);
         assertEquals(includes, target2.getIncludes());
@@ -136,7 +136,7 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "", "tab1/test.txt,tab1/test2.txt,**/test3.txt", true, false, true);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "", "tab1/test.txt,tab1/test2.txt,**/test3.txt", true, false, true, "");
         p.getPublishersList().add(new HtmlPublisher(Arrays.asList(target1)));
         p.setAssignedLabel(Label.get("agent"));
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
@@ -168,7 +168,7 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "${MYREPORTFILES}", true, true, false );
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "${MYREPORTFILES}", true, true, false, "" );
         target2.setReportTitles("${MYREPORTTITLE}");
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target2);
@@ -193,7 +193,7 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportname", reportDir, "**/aReportDir/*/afile.html, **/otherDir/afile.html", true, true, false, "");
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target2);
         p.getPublishersList().add(new HtmlPublisher(targets));
@@ -216,8 +216,8 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true, "");
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false, "");
 
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target1);
@@ -238,8 +238,8 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false, "");
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false, "");
 
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target1);
@@ -266,11 +266,11 @@ public class HtmlPublisherIntegrationTest {
         });
 
 
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false, "");
         //default behavior is to not use wrapper file directly
         target1.setUseWrapperFileDirectly(false);
         assertFalse(target1.getUseWrapperFileDirectly());
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false);
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false, "");
         target2.setUseWrapperFileDirectly(true);
         assertTrue(target2.getUseWrapperFileDirectly());
 
@@ -296,8 +296,8 @@ public class HtmlPublisherIntegrationTest {
                 return true;
             }
         });
-        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false);
-        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, false, "");
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false, "");
 
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target1);
