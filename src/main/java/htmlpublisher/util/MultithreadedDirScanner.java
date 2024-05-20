@@ -3,9 +3,7 @@ package htmlpublisher.util;
 import hudson.util.DirScanner;
 import hudson.util.FileVisitor;
 
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,37 +11,42 @@ import java.io.IOException;
 public class MultithreadedDirScanner extends DirScanner {
 
 	private DirScanner delegateDirScanner;
-	private int numberOfThreads;
+	private int numberOfWorkers;
+	private ExecutorService executorService;
 
-	public MultithreadedDirScanner(DirScanner delegateDirScanner, int numberOfThreads) {
+	public MultithreadedDirScanner(DirScanner delegateDirScanner, int numberOfWorkers,
+			ExecutorService executorService) {
 		this.delegateDirScanner = delegateDirScanner;
-		this.numberOfThreads = numberOfThreads;
+		this.numberOfWorkers = numberOfWorkers;
+		this.executorService = executorService;
 	}
 
 	@Override
 	public void scan(File dir, FileVisitor visitor) throws IOException {
-		// Create new executor service
-		ExecutorService executorService = Executors.newFixedThreadPool(this.numberOfThreads);
 
-		// Create visitor to delegate multithreaded
-		MultithreadedFileVisitor multithreadedFileVisitor = new MultithreadedFileVisitor(executorService, visitor);
+		// Use visitor service handling multiple workers
+		try (FileVisitorService fileVisitorService = new FileVisitorService(this.executorService, this.numberOfWorkers,
+				visitor)) {
 
-		try {
-			// Delegate directory scan using multithreaded visitor
-			this.delegateDirScanner.scan(dir, multithreadedFileVisitor);
-		} finally {
-			// Shutdown & terminate executor service
-			executorService.shutdown();
 			try {
-				executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-			} catch (InterruptedException e) {
-				throw new IOException(e);
+				// Delegate directory scan to visit workers using visitor service
+				this.delegateDirScanner.scan(dir, new FileVisitor() {
+					public void visit(File file, String relativePath) {
+						// Add file to visitor service
+						fileVisitorService.add(file, relativePath);
+					}
+				});
+
+			} finally {
+				// FINAL Shutdown & terminate visitor service including all workers
+				fileVisitorService.close();
+
+				// Propagate exception, if there has been one
+				fileVisitorService.throwCatchedException();
 			}
 
 		}
 
-		// Propagate exception
-		multithreadedFileVisitor.throwCatchedException();
 	}
 
 	private static final long serialVersionUID = 1L;

@@ -40,7 +40,7 @@
     <f:entry field="useWrapperFileDirectly" title="${%useWrapperFileDirectly.title}">
       <f:checkbox default="true"/>
     </f:entry>
-    <f:entry field="numberOfThreads" title="${%numberOfThreads.title}">
+    <f:entry field="numberOfWorkers" title="${%numberOfWorkers.title}">
       <f:number/>
     </f:entry>
   </f:advanced>

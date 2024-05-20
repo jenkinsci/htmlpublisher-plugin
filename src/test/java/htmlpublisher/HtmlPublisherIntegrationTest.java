@@ -296,9 +296,9 @@ public class HtmlPublisherIntegrationTest {
             }
         });
         HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true);
-        target1.setNumberOfThreads(2);
+        target1.setNumberOfWorkers(2);
         HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
-        target2.setNumberOfThreads(2);
+        target2.setNumberOfWorkers(2);
 
         List<HtmlPublisherTarget> targets = new ArrayList<>();
         targets.add(target1);
