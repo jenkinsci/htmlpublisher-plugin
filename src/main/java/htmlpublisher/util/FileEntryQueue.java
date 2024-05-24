@@ -80,7 +80,7 @@ public class FileEntryQueue {
 	/**
 	 * Remove the queue specified by the key from the cache
 	 * 
-	 * @returns the removed queue or null, if queue was not in the cache before
+	 * @return the removed queue or null, if queue was not in the cache before
 	 */
 	public static FileEntryQueue remove(UUID queueKey) {
 
@@ -112,7 +112,7 @@ public class FileEntryQueue {
 	 * Retrieves and removes the head of this queue, waiting if necessary until an
 	 * element becomes available.
 	 * 
-	 * @throws @InterruptedException if the queue is closed
+	 * @throws InterruptedException if the queue is closed
 	 * 
 	 */
 	public FileEntry take() throws InterruptedException {
