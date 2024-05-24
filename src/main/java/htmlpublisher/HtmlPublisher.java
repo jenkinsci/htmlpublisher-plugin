@@ -81,7 +81,7 @@ import jenkins.model.Jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import htmlpublisher.util.MultithreadedDirScanner;
+import htmlpublisher.util.MultithreadedFileCopyHelper;
 import jenkins.util.Timer;
 
 import static hudson.Functions.htmlAttributeEscape;
@@ -262,11 +262,12 @@ public class HtmlPublisher extends Recorder {
                 	DirScanner dirScanner = dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS);
                 	if (numberOfWorkers <= 1) {
                 		logger.println("[htmlpublisher] Copying recursive using current thread");
+                        copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, reportTarget.getIncludes());
                 	} else {
                 		logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
-                		dirScanner = new MultithreadedDirScanner(dirScanner, numberOfWorkers, Timer.get());
+                		copied = MultithreadedFileCopyHelper.copyRecursiveTo(
+                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get());
                 	}
-                    copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, reportTarget.getIncludes());
                 }
                 if (copied == 0) {
                     if (!allowMissing) {
