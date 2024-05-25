@@ -1,6 +1,7 @@
 package htmlpublisher.util;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ExecutionException;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import hudson.FilePath;
+import hudson.model.TaskListener;
 import hudson.util.DirScanner;
 
 /**
@@ -32,8 +34,12 @@ public class MultithreadedFileCopyHelper {
 	 * Copies files according to a specified scanner to the controller
 	 */
 	static public int copyRecursiveTo(FilePath archiveDir, DirScanner dirScanner, FilePath targetDir,
-			String description, int numberOfWorkers, ExecutorService executorService)
+			String description, int numberOfWorkers, ExecutorService executorService, TaskListener listener)
 			throws IOException, InterruptedException {
+
+		PrintStream logger = listener.getLogger();
+
+		long startTime = System.currentTimeMillis();
 
 		// Generating a queue key, that is used for the scanner and inside each worker
 		// for finding our queue
@@ -54,7 +60,7 @@ public class MultithreadedFileCopyHelper {
 			// ---------------------------------------------------------
 			// Scan files / Fill queue on the node (controller or agent)
 			// ---------------------------------------------------------
-			archiveDir.act(new DirScanningQueueWriter(dirScanner, queueKey));
+			FileEntryQueue.Statistic queueStatistic = archiveDir.act(new DirScanningQueueWriter(dirScanner, queueKey));
 
 			// --------------------------------------------
 			// Collect the results on the controller
@@ -67,6 +73,14 @@ public class MultithreadedFileCopyHelper {
 					throw new IOException(e);
 				}
 			}
+
+			// ---------------------------------------------------
+			// Print some statistic about the overall copy process
+			// ---------------------------------------------------
+			float overallSizeInMB = (float) queueStatistic.getOverallSize() / 1024 / 1024;
+			float overallDurationInSeconds = (float) (System.currentTimeMillis() - startTime) / 1000;
+			logger.format("Copied %,d file(s) / %,.1f MB --> %,.1f MB/s", queueStatistic.getOverallCount(),
+					overallSizeInMB, overallSizeInMB / overallDurationInSeconds).println();
 
 			// Returning number of transfered files
 			return transferedFiles;

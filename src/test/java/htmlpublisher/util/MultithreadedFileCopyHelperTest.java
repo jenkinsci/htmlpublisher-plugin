@@ -2,6 +2,7 @@ package htmlpublisher.util;
 
 import org.junit.Test;
 
+import hudson.model.TaskListener;
 import hudson.util.DirScanner;
 import hudson.util.FileVisitor;
 import hudson.FilePath;
@@ -9,7 +10,6 @@ import jenkins.util.Timer;
 
 import java.io.File;
 import java.io.IOException;
-
 
 import static org.junit.Assert.assertThrows;
 
@@ -28,7 +28,7 @@ public class MultithreadedFileCopyHelperTest {
 						}
 
 						private static final long serialVersionUID = 1L;
-					}, null, null, 1, Timer.get());
+					}, null, null, 1, Timer.get(), TaskListener.NULL);
 		});
 
 	}

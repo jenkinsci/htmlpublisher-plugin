@@ -18,7 +18,7 @@ import org.jenkinsci.remoting.RoleChecker;
  * Executes a dir scanner and collects the scanned files into a queue on the
  * node, where the data is located
  */
-class DirScanningQueueWriter implements FilePath.FileCallable<Integer> {
+public class DirScanningQueueWriter implements FilePath.FileCallable<FileEntryQueue.Statistic> {
 
 	private final UUID queueKey;
 	private final DirScanner dirScanner;
@@ -54,7 +54,7 @@ class DirScanningQueueWriter implements FilePath.FileCallable<Integer> {
 	}
 
 	@Override
-	public Integer invoke(File f, VirtualChannel channel) throws IOException {
+	public FileEntryQueue.Statistic invoke(File f, VirtualChannel channel) throws IOException {
 
 		// Find the queue
 		FileEntryQueue queue = FileEntryQueue.getOrCreateQueue(this.queueKey);
@@ -71,7 +71,7 @@ class DirScanningQueueWriter implements FilePath.FileCallable<Integer> {
 		// Signal normal end of queue, so our workers know when to exit
 		queue.shutdown();
 
-		return queue.getOverallCount();
+		return queue.getStatistic();
 
 	}
 

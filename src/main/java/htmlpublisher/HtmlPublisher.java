@@ -266,7 +266,7 @@ public class HtmlPublisher extends Recorder {
                 	} else {
                 		logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
                 		copied = MultithreadedFileCopyHelper.copyRecursiveTo(
-                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get());
+                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get(), listener);
                 	}
                 }
                 if (copied == 0) {

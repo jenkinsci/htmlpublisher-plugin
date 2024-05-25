@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.UUID;
@@ -34,9 +35,14 @@ public class FileEntryQueue {
 	private final LinkedBlockingQueue<FileEntry> queue = new LinkedBlockingQueue<>();
 
 	/**
-	 * Number of added files since the creation of this queue
+	 * Number of all added files since the creation of this queue
 	 */
 	private final AtomicInteger overallCount = new AtomicInteger(0);
+
+	/**
+	 * Size of all added files since the creation of this queue
+	 */
+	private final AtomicLong overallSize = new AtomicLong(0);
 
 	/**
 	 * An entry in a queue
@@ -59,6 +65,31 @@ public class FileEntryQueue {
 
 		public String getRelativePath() {
 			return this.relativePath;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+	}
+
+	/**
+	 * Some statistical data about the queue
+	 */
+	public static class Statistic implements Serializable {
+
+		private int overallCount;
+		private long overallSize;
+
+		public Statistic(int overallCount, long overallSize) {
+			this.overallCount = overallCount;
+			this.overallSize = overallSize;
+		}
+
+		public int getOverallCount() {
+			return this.overallCount;
+		}
+
+		public long getOverallSize() {
+			return this.overallSize;
 		}
 
 		private static final long serialVersionUID = 1L;
@@ -103,6 +134,7 @@ public class FileEntryQueue {
 		this.queue.add(entry);
 
 		this.overallCount.incrementAndGet();
+		this.overallSize.addAndGet(file.length());
 
 		return entry;
 
@@ -153,11 +185,29 @@ public class FileEntryQueue {
 	}
 
 	/**
-	 * @return the number of added files since the creation of this queue
+	 * @return the number of all added files since the creation of this queue
 	 */
 	public int getOverallCount() {
 
 		return this.overallCount.get();
+
+	}
+
+	/**
+	 * @return the size of all added files since the creation of this queue
+	 */
+	public long getOverallSize() {
+
+		return this.overallSize.get();
+
+	}
+
+	/**
+	 * @return some statistic about this queue
+	 */
+	public Statistic getStatistic() {
+
+		return new FileEntryQueue.Statistic(this.getOverallCount(), this.getOverallSize());
 
 	}
 
