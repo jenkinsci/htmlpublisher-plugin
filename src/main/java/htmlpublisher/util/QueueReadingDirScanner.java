@@ -31,7 +31,7 @@ public class QueueReadingDirScanner extends DirScanner {
 
 				FileEntryQueue.FileEntry entry = queue.take(); // throws InterruptedException on the end of the
 																// queue
-				visitor.visit(entry.getFile(), entry.getRegularPath());
+				visitor.visit(entry.getFile(), entry.getRelativePath());
 			}
 		} catch (InterruptedException e) {
 			// noop, just exit

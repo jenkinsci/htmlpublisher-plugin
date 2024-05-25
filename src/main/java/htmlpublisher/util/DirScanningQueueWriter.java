@@ -35,8 +35,8 @@ class DirScanningQueueWriter implements FilePath.FileCallable<Integer> {
 		}
 
 		@Override
-		public void visit(File file, String regularPath) {
-			this.queue.add(file, regularPath);
+		public void visit(File file, String relativePath) {
+			this.queue.add(file, relativePath);
 		}
 
 	}

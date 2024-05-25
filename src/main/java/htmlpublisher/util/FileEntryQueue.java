@@ -44,12 +44,12 @@ public class FileEntryQueue {
 	public static class FileEntry implements Serializable {
 
 		private File file;
-		private String regularPath;
+		private String relativePath;
 
-		public FileEntry(File file, String regularPath) {
+		public FileEntry(File file, String relativePath) {
 
 			this.file = file;
-			this.regularPath = regularPath;
+			this.relativePath = relativePath;
 
 		}
 
@@ -57,8 +57,8 @@ public class FileEntryQueue {
 			return this.file;
 		}
 
-		public String getRegularPath() {
-			return this.regularPath;
+		public String getRelativePath() {
+			return this.relativePath;
 		}
 
 		private static final long serialVersionUID = 1L;
@@ -96,9 +96,9 @@ public class FileEntryQueue {
 	 * @throws IllegalStateException if no space is currently available
 	 * 
 	 */
-	public FileEntry add(File file, String regularPath) {
+	public FileEntry add(File file, String relativePath) {
 
-		FileEntry entry = new FileEntry(file, regularPath);
+		FileEntry entry = new FileEntry(file, relativePath);
 
 		this.queue.add(entry);
 
