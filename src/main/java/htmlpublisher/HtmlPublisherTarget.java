@@ -179,7 +179,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         this.useWrapperFileDirectly = useWrapperFileDirectly;
     }
     
-    public Integer getNumberOfWorkers() {
+    public int getNumberOfWorkers() {
         return this.numberOfWorkers;
     }
 

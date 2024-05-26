@@ -40,13 +40,13 @@ public class HtmlPublisherTest {
         HtmlPublisherTarget target = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
         
         // Test default behavior
-        assertEquals(target.getNumberOfWorkers(), Integer.valueOf(0));
+        assertEquals(target.getNumberOfWorkers(), 0);
         
         // Test explicit value
         target.setNumberOfWorkers(0);
-        assertEquals(target.getNumberOfWorkers(), Integer.valueOf(0));
+        assertEquals(target.getNumberOfWorkers(), 0);
 
         target.setNumberOfWorkers(1);
-        assertEquals(target.getNumberOfWorkers(), Integer.valueOf(1));
+        assertEquals(target.getNumberOfWorkers(), 1);
     }
 }
