@@ -93,6 +93,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private Boolean escapeUnderscores;
 
     private Boolean useWrapperFileDirectly;
+    
+    private int numberOfWorkers = 0;
 
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
@@ -175,6 +177,15 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setUseWrapperFileDirectly(boolean useWrapperFileDirectly) {
         this.useWrapperFileDirectly = useWrapperFileDirectly;
+    }
+    
+    public int getNumberOfWorkers() {
+        return this.numberOfWorkers;
+    }
+
+    @DataBoundSetter
+    public void setNumberOfWorkers(int numberOfWorkers) {
+        this.numberOfWorkers = numberOfWorkers;
     }
 
     @DataBoundSetter

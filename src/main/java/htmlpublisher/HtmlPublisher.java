@@ -81,6 +81,9 @@ import jenkins.model.Jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import htmlpublisher.util.MultithreadedFileCopyHelper;
+import jenkins.util.Timer;
+
 import static hudson.Functions.htmlAttributeEscape;
 
 
@@ -97,6 +100,12 @@ public class HtmlPublisher extends Recorder {
      */
     @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Yes it should, but this allows the ability to change it via script in runtime.")
     static /*almost final*/ boolean FOLLOW_SYMLINKS = SystemProperties.getBoolean(HtmlPublisher.class.getName() + ".FOLLOW_SYMLINKS", false);
+    
+    /**
+     * Set timeout when publishing multithreaded
+     */
+    static /*almost final*/ int PUBLISH_WORKER_TIMEOUT = SystemProperties.getInteger(HtmlPublisher.class.getName() + ".PUBLISH_WORKER_TIMEOUT", 300);
+    
     private final List<HtmlPublisherTarget> reportTargets;
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
@@ -255,7 +264,16 @@ public class HtmlPublisher extends Recorder {
                 if (FOLLOW_SYMLINKS) {
                     copied = archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir);
                 } else {
-                    copied = archiveDir.copyRecursiveTo(dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS), targetDir, reportTarget.getIncludes());
+                	int numberOfWorkers = reportTarget.getNumberOfWorkers();
+                	DirScanner dirScanner = dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS);
+                	if (numberOfWorkers <= 1) {
+                		logger.println("[htmlpublisher] Copying recursive using current thread");
+                        copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, reportTarget.getIncludes());
+                	} else {
+                		logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
+                		copied = MultithreadedFileCopyHelper.copyRecursiveTo(
+                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get(), PUBLISH_WORKER_TIMEOUT, listener);
+                	}
                 }
                 if (copied == 0) {
                     if (!allowMissing) {
