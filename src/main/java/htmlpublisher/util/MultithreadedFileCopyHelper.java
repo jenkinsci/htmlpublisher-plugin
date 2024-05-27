@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -34,8 +36,8 @@ public class MultithreadedFileCopyHelper {
 	 * Copies files according to a specified scanner to the controller
 	 */
 	static public int copyRecursiveTo(FilePath archiveDir, DirScanner dirScanner, FilePath targetDir,
-			String description, int numberOfWorkers, ExecutorService executorService, TaskListener listener)
-			throws IOException, InterruptedException {
+			String description, int numberOfWorkers, ExecutorService executorService, int workerTimeoutInSeconds,
+			TaskListener listener) throws IOException, InterruptedException, TimeoutException {
 
 		PrintStream logger = listener.getLogger();
 
@@ -68,7 +70,7 @@ public class MultithreadedFileCopyHelper {
 			int transferedFiles = 0;
 			for (Future<Integer> worker : workers) {
 				try {
-					transferedFiles += worker.get(); // Wait workers to finish
+					transferedFiles += worker.get(workerTimeoutInSeconds, TimeUnit.SECONDS); // Wait workers to finish
 				} catch (ExecutionException e) {
 					throw new IOException(e);
 				}
