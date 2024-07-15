@@ -390,21 +390,26 @@ public class HtmlPublisher extends Recorder {
             List<Action> actions = new ArrayList<>();
             for (HtmlPublisherTarget target : this.reportTargets) {
                 actions.add(target.getProjectAction(project));
-                if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){
-                    for (MatrixConfiguration mc : ((MatrixProject) project).getActiveConfigurations()){
-                        try {
-                          mc.onLoad(mc.getParent(), mc.getName());
-                        }
-                        catch (IOException e){
-                            //Could not reload the configuration.
-                        }
-                    }
+                if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
+                    adjustMatrixProject(project);
                 }
             }
             return actions;
         }
     }
 
+    private static void adjustMatrixProject(AbstractProject<?, ?> project) {
+        MatrixProject mp = (MatrixProject) project;
+        if (mp.getActiveConfigurations() != null) {
+            for (MatrixConfiguration mc : mp.getActiveConfigurations()) {
+                try {
+                    mc.onLoad(mc.getParent(), mc.getName());
+                } catch (IOException e) {
+                    //Could not reload the configuration.
+                }
+            }
+        }
+    }
 
     @SuppressRestrictedWarnings(NoExternalUse.class)
     public static DirScanner dirScannerGlob(String includes, String excludes, boolean useDefaultExcludes, OpenOption... openOptions) throws Exception {
