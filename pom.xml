@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.85</version>
+    <version>4.86</version>
     <relativePath />
   </parent>
 
@@ -12,7 +12,7 @@
     <revision>1.37</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
-    <jenkins.version>2.387.3</jenkins.version>
+    <jenkins.version>2.440.3</jenkins.version>
   </properties>
 
   <licenses>
@@ -120,8 +120,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.387.x</artifactId>
-        <version>2543.vfb_1a_5fb_9496d</version>
+        <artifactId>bom-2.440.x</artifactId>
+        <version>3234.v5ca_5154341ef</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
