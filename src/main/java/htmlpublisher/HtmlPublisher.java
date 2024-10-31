@@ -60,6 +60,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.Functions;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
@@ -237,6 +238,7 @@ public class HtmlPublisher extends Recorder {
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
+            reportLines.add("<script type=\"text/javascript\" src=\"" + Jenkins.get().getRootUrl() + Functions.getResourcePath() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
             HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
@@ -338,23 +340,14 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportFile = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + htmlAttributeEscape(report) + "\">" + htmlAttributeEscape(getTitle(reportFile, titles, j)) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" value=\"" + htmlAttributeEscape(report) + "\">" + htmlAttributeEscape(getTitle(reportFile, titles, j)) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Jenkins.get().getRootUrl();
             Job job = build.getParent();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + htmlAttributeEscape(job.getName()) + "\";</script>");
-            // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
-            if (hudsonUrl == null) {
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");
-            } else {
-                String jobUrl = hudsonUrl + job.getUrl();
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + jobUrl + "\";</script>");
-            }
-
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
-
+            reportLines.add("<span class='links-data-holder' data-back-to-name='" + job.getName() + "' data-root-url='" +
+                    hudsonUrl + "' data-job-url='" + job.getUrl() + "' data-zip-link='" + reportTarget.getSanitizedName() + "'/>");
             // Now add the footer.
             reportLines.addAll(footerLines);
             // And write this as the index
