@@ -5,12 +5,13 @@ import htmlpublisher.HtmlPublisherTarget
 import hudson.Functions
 import hudson.Util
 import hudson.model.Descriptor
-import jenkins.model.Jenkins
 
 import java.security.MessageDigest
 
 l = namespace(lib.LayoutTagLib)
 st = namespace("jelly:stapler")
+
+Functions.initPageVariables(context)
 
 def text = new File(my.dir(), my.getHTMLTarget().getWrapperName()).text
 
@@ -28,7 +29,7 @@ def serveWrapper() {
     def footer = HtmlPublisher.class.getResourceAsStream("/htmlpublisher/HtmlPublisher/footer.html").text
 
     raw(header)
-    script(src: "${Jenkins.get().getRootUrl() + Functions.getResourcePath()}/plugin/htmlpublisher/js/htmlpublisher.js", type: "text/javascript")
+    script(src: "${resURL}/plugin/htmlpublisher/js/htmlpublisher.js", type: "text/javascript")
 
     def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
     def matcher = legacyFile.text =~ /<li id="tab\d+" class="unselected"(?: onclick="updateBody\('tab\d+'\);")? value="([^"]+)">([^<]+)<\/li>/

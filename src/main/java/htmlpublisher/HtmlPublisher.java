@@ -47,6 +47,7 @@ import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.DirScanner;
+import io.jenkins.cli.shaded.org.apache.commons.lang.StringUtils;
 import jenkins.util.SystemProperties;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -238,7 +239,7 @@ public class HtmlPublisher extends Recorder {
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
-            reportLines.add("<script type=\"text/javascript\" src=\"" + Jenkins.get().getRootUrl() + Functions.getResourcePath() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
+            reportLines.add("<script type=\"text/javascript\" src=\"" + getStaticResourcesUrl() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
             HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
@@ -389,6 +390,15 @@ public class HtmlPublisher extends Recorder {
             }
             return actions;
         }
+    }
+
+    private static String getStaticResourcesUrl() {
+        String rootUrl = Jenkins.get().getRootUrl();
+        if (rootUrl == null) {
+            rootUrl = "";
+        }
+
+        return StringUtils.stripEnd(rootUrl, "/") + Functions.getResourcePath();
     }
 
     private static void adjustMatrixProject(AbstractProject<?, ?> project) {
