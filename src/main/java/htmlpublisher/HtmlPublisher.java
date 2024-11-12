@@ -47,8 +47,8 @@ import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.DirScanner;
-import io.jenkins.cli.shaded.org.apache.commons.lang.StringUtils;
 import jenkins.util.SystemProperties;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
