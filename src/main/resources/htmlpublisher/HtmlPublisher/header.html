@@ -86,26 +86,9 @@ h2
 }
 
 </style>
-
-<script type="text/javascript">
-function updateBody(tabId, page) {
-    document.getElementById(selectedTab).setAttribute("class", "unselected");
-    tab = document.getElementById(tabId)
-    tab.setAttribute("class", "selected");
-    selectedTab = tabId;
-    iframe = document.getElementById("myframe");
-    iframe.src = encodeURIComponent(tab.getAttribute("value")).replace(/%2F/g, '/');
-}
-function init(tabId){
-	updateBody(tabId);
-}
-
-var selectedTab = "tab1"
-</script>
-
 </head>
 
-<body onload="init('tab1');">
+<body>
 <nav>
 <h1><a id="hudson_link" href="#"></a></h1>
 <h2><a id="zip_link" href="#">Zip</a></h2>
