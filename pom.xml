@@ -12,7 +12,8 @@
     <revision>1.38</revision>
     <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
-    <jenkins.version>2.440.3</jenkins.version>
+    <jenkins.baseline>2.452</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
   </properties>
 
   <licenses>
@@ -120,7 +121,7 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.440.x</artifactId>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
         <version>3435.v238d66a_043fb_</version>
         <scope>import</scope>
         <type>pom</type>
