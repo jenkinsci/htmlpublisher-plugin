@@ -37,6 +37,7 @@ Clicking _Publishing options..._ will present you with some additional options:
 * Allow missing report - if `false`, build will be marked as failed if the report directory does not exist.
 * Include files - Optional Ant pattern that specifies what files in the report directory to archive. Defaults to archiving all files in the given report directory.
 * Escape underscores in Report Title - if `true`, underscores in report titles will be escaped to `_5F` along with other non-alphanumeric characters. If `false` they will be left as is.
+* Icon - Optional icon to use for the report. If not provided, a default icon will be used. The icon can be an existing `symbol` or an icon from the reportDir
 
 #### Using with Pipeline Jobs
 

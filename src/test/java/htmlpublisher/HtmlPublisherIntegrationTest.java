@@ -313,6 +313,33 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
+    public void testIcon() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("variable_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace();
+                ws.child("dirA").child("file1.html").write("hello", "UTF-8");
+                ws.child("dirA").child("file2.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("reportnameB", "dirB", "", true, true, true);
+        target1.setIcon("symbol-cube");
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("reportnameA", "dirA", "", true, true, false);
+        target2.setIcon("symbol-build");
+
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target1);
+        targets.add(target2);
+        p.getPublishersList().add(new HtmlPublisher(targets));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        assertTrue("reportnameA/htmlpublisher-wrapper.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
+        assertTrue("reportnameA/file1.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file1.html").exists());
+        assertTrue("reportnameA/file2.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file2.html").exists());
+        assertFalse("reportnameB/htmlpublisher-wrapper.html must not exist", new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+    }
+
+    @Test
     public void testPublishesTwoReportsOneJob() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
