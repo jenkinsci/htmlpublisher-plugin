@@ -23,11 +23,11 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.owasp.encoder.Encode;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -284,7 +284,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         /**
          * Serves HTML reports.
          */
-        public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+        public void doDynamic(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException, ServletException {
             DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "symbol-document-text", false);
             if (req.getRestOfPath().isEmpty()) {
                 throw HttpResponses.forwardToView(this, "index.jelly");
