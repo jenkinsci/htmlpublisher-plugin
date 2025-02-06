@@ -43,5 +43,8 @@
     <f:entry field="numberOfWorkers" title="${%numberOfWorkers.title}">
       <f:number/>
     </f:entry>
+    <f:entry field="icon" title="${%icon.title}">
+      <f:textbox />
+    </f:entry>
   </f:advanced>
 </j:jelly>

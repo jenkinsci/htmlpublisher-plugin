@@ -76,6 +76,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final boolean allowMissing;
 
     /**
+     *  The path or symbol of an icon to use for the HTML report in the sidebar (relative to reportDir)
+     */
+    private String icon;
+
+    /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
      */
     @Deprecated
@@ -160,6 +165,15 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         } else {
             return this.escapeUnderscores;
         }
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    @DataBoundSetter
+    public void setIcon(String icon) {
+        this.icon = StringUtils.trim(icon);
     }
 
     @DataBoundSetter
@@ -266,7 +280,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getIconFileName() {
-            return dir().exists() ? "symbol-document-text" : null;
+            String icon;
+            if (StringUtils.isNotBlank(actualHtmlPublisherTarget.icon)) {
+                if (actualHtmlPublisherTarget.icon.startsWith("symbol-")) {
+                    icon = actualHtmlPublisherTarget.icon;
+                }
+                else {
+                    icon = project.getUrl() + dir().getName() + "/" + actualHtmlPublisherTarget.icon;
+                }
+            } else {
+                icon = "symbol-document-text";
+            }
+            return dir().exists() ? icon : null;
         }
 
         public String getBackToName() {
