@@ -9,7 +9,8 @@
   </parent>
 
   <properties>
-    <changelist>999999-SNAPSHOT</changelist>
+    <revision>1.38</revision>
+    <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
     <jenkins.baseline>2.479</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
@@ -25,7 +26,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>${changelist}</version>
+  <version>${revision}${changelist}</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
