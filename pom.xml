@@ -4,17 +4,15 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.47</version>
+    <version>5.7</version>
     <relativePath />
   </parent>
 
   <properties>
-    <revision>1.32</revision>
-    <changelist>-SNAPSHOT</changelist>
+    <changelist>999999-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
-    <jenkins.version>2.346.1</jenkins.version>
-    <spotbugs.effort>Max</spotbugs.effort>
-    <spotbugs.threshold>Low</spotbugs.threshold>
+    <jenkins.baseline>2.479</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
   </properties>
 
   <licenses>
@@ -27,7 +25,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>${revision}${changelist}</version>
+  <version>${changelist}</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
@@ -65,6 +63,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>matrix-project</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -73,7 +72,7 @@
     <dependency>
       <groupId>org.owasp.encoder</groupId>
       <artifactId>encoder</artifactId>
-      <version>1.2.3</version>
+      <version>1.3.1</version>
     </dependency>
     <dependency> <!-- Test framework -->
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -101,16 +100,52 @@
       <artifactId>workflow-basic-steps</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.20.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>access-modifier-suppressions</artifactId>
+      <version>${access-modifier-checker.version}</version>
+      <!-- Not needed at runtime -->
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <!-- Upper bounds and comes from core -->
+          <groupId>org.kohsuke</groupId>
+          <artifactId>access-modifier-annotation</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.346.x</artifactId>
-        <version>1643.v1cffef51df73</version>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>4051.v78dce3ce8b_d6</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.infradna.tool</groupId>
+        <artifactId>bridge-method-injector</artifactId>
+        <version>1.30</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

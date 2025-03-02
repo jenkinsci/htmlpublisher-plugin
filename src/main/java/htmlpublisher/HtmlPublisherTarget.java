@@ -1,5 +1,33 @@
 package htmlpublisher;
 
+import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Action;
+import hudson.model.AbstractItem;
+import hudson.model.Run;
+import hudson.model.DirectoryBrowserSupport;
+import hudson.model.Job;
+import hudson.model.ProminentProjectAction;
+import hudson.model.AbstractBuild;
+import hudson.model.InvisibleAction;
+import hudson.model.Descriptor;
+import hudson.util.HttpResponses;
+import jenkins.model.RunAction2;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
+import org.owasp.encoder.Encode;
+
+import jakarta.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -7,36 +35,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-import javax.servlet.ServletException;
-
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-import org.owasp.encoder.Encode;
-
-import com.infradna.tool.bridge_method_injector.WithBridgeMethods;
-
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Util;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractItem;
-import hudson.model.Action;
-import hudson.model.Descriptor;
-import hudson.model.DirectoryBrowserSupport;
-import hudson.model.InvisibleAction;
-import hudson.model.Job;
-import hudson.model.ProminentProjectAction;
-import hudson.model.Run;
-import hudson.util.HttpResponses;
-import jenkins.model.RunAction2;
+import static hudson.Functions.htmlAttributeEscape;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -48,7 +47,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     /**
      * The name of the report to display for the build/project, such as "Code Coverage"
      */
-    private final String reportName;
+    private String reportName;
 
     /**
      * The path to the HTML report directory relative to the workspace.
@@ -77,6 +76,11 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private final boolean allowMissing;
 
     /**
+     *  The path or symbol of an icon to use for the HTML report in the sidebar (relative to reportDir)
+     */
+    private String icon;
+
+    /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
      */
     @Deprecated
@@ -94,6 +98,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     private Boolean escapeUnderscores;
 
     private Boolean useWrapperFileDirectly;
+    
+    private int numberOfWorkers = 0;
 
     /**
      * @deprecated Use {@link #HtmlPublisherTarget(java.lang.String, java.lang.String, java.lang.String, boolean, boolean, boolean)}.
@@ -161,6 +167,15 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
     }
 
+    public String getIcon() {
+        return icon;
+    }
+
+    @DataBoundSetter
+    public void setIcon(String icon) {
+        this.icon = StringUtils.trim(icon);
+    }
+
     @DataBoundSetter
     public void setEscapeUnderscores(boolean escapeUnderscores) {
         this.escapeUnderscores = escapeUnderscores;
@@ -177,21 +192,23 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public void setUseWrapperFileDirectly(boolean useWrapperFileDirectly) {
         this.useWrapperFileDirectly = useWrapperFileDirectly;
     }
+    
+    public int getNumberOfWorkers() {
+        return this.numberOfWorkers;
+    }
+
+    @DataBoundSetter
+    public void setNumberOfWorkers(int numberOfWorkers) {
+        this.numberOfWorkers = numberOfWorkers;
+    }
 
     @DataBoundSetter
     public void setReportTitles(String reportTitles) {
         this.reportTitles = StringUtils.trim(reportTitles);
     }
 
-    /**
-     * Actually not safe, this allowed directory traversal (SECURITY-784).
-     * @return Returns a string with replaced whitespaces by underscores.
-     */
-    private String getLegacySanitizedName() {
-        String safeName = this.reportName;
-        safeName = safeName.replace(" ", "_");
-        return safeName;
-    }
+    //Add this for testing purposes
+    public void setReportName(String reportName) {this.reportName = StringUtils.trim(reportName);}
 
     public String getSanitizedName() {
         return sanitizeReportName(this.reportName, getEscapeUnderscores());
@@ -263,7 +280,18 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
 
         public String getIconFileName() {
-            return dir().exists() ? "symbol-document-text" : null;
+            String icon;
+            if (StringUtils.isNotBlank(actualHtmlPublisherTarget.icon)) {
+                if (actualHtmlPublisherTarget.icon.startsWith("symbol-")) {
+                    icon = actualHtmlPublisherTarget.icon;
+                }
+                else {
+                    icon = project.getUrl() + dir().getName() + "/" + actualHtmlPublisherTarget.icon;
+                }
+            } else {
+                icon = "symbol-document-text";
+            }
+            return dir().exists() ? icon : null;
         }
 
         public String getBackToName() {
@@ -281,7 +309,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         /**
          * Serves HTML reports.
          */
-        public void doDynamic(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+        public void doDynamic(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException, ServletException {
             DirectoryBrowserSupport dbs = new DirectoryBrowserSupport(this, new FilePath(this.dir()), this.getTitle(), "symbol-document-text", false);
             if (req.getRestOfPath().isEmpty()) {
                 throw HttpResponses.forwardToView(this, "index.jelly");
@@ -313,11 +341,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 if (run != null) {
                     File javadocDir = getBuildArchiveDir(run);
 
-                    if (!javadocDir.exists()) {
-                        javadocDir = getBuildArchiveDir(run, getLegacySanitizedName());
-                    }
-                    // TODO not sure about this change
-
                     if (javadocDir.exists()) {
                         for (HTMLBuildAction a : run.getActions(HTMLBuildAction.class)) {
                             if (a.getHTMLTarget().getReportName().equals(getHTMLTarget().getReportName())) {
@@ -329,15 +352,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                 }
             }
 
-            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
             File projectArchiveDir = getProjectArchiveDir(this.project);
-            if (projectArchiveDir.exists()) {
-                return projectArchiveDir;
-            }
-            File legacyProjectArchiveDir = getProjectArchiveDir(this.project, getLegacySanitizedName());
-            if (legacyProjectArchiveDir.exists()) {
-                return legacyProjectArchiveDir;
-            }
             return projectArchiveDir;
         }
 
@@ -435,15 +450,7 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
         @Override
         protected File dir() {
-            // SECURITY-784: prefer safe over legacy, but if neither exists, return safe dir
             File buildArchiveDir = getBuildArchiveDir(this.build);
-            if (buildArchiveDir.exists()) {
-                return buildArchiveDir;
-            }
-            File legacyBuildArchiveDir = getBuildArchiveDir(this.build, getLegacySanitizedName());
-            if (legacyBuildArchiveDir.exists()) {
-                return legacyBuildArchiveDir;
-            }
             return buildArchiveDir;
         }
 

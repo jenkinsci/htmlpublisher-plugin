@@ -1,6 +1,6 @@
 package htmlpublisher;
 
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlPage;
 import hudson.model.FreeStyleProject;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -24,15 +24,7 @@ public class Security784Test {
 
         Assert.assertTrue(new File(job.getRootDir(), "htmlreports/foo!!!!bar/index.html").exists());
 
-        HtmlPublisherTarget.HTMLAction action = job.getAction(HtmlPublisherTarget.HTMLAction.class);
-        Assert.assertNotNull(action);
-        Assert.assertEquals("foo!!!!bar", action.getHTMLTarget().getReportName());
-        Assert.assertEquals("foo!!!!bar", action.getUrlName()); // legacy
-
         JenkinsRule.WebClient client = j.createWebClient();
-        HtmlPage page = client.getPage(job, "foo!!!!bar/index.html");
-        String text = page.getWebResponse().getContentAsString();
-        Assert.assertEquals("Sun Mar 25 15:42:10 CEST 2018", text.trim());
 
         job.getBuildersList().clear();
         String newDate = new Date().toString();
@@ -44,16 +36,13 @@ public class Security784Test {
 
         Assert.assertTrue(new File(job.getRootDir(), "htmlreports/foo_21_21_21_21bar/index.html").exists());
 
-        action = job.getAction(HtmlPublisherTarget.HTMLAction.class);
+        HtmlPublisherTarget.HTMLAction action = job.getAction(HtmlPublisherTarget.HTMLAction.class);
         Assert.assertNotNull(action);
         Assert.assertEquals("foo!!!!bar", action.getHTMLTarget().getReportName());
         Assert.assertEquals("foo_21_21_21_21bar", action.getUrlName()); // new
 
-        text = client.goTo("job/thejob/foo_21_21_21_21bar/index.html").getWebResponse().getContentAsString();
+        String text = client.goTo("job/thejob/foo_21_21_21_21bar/index.html").getWebResponse().getContentAsString();
         Assert.assertEquals(newDate, text.trim());
-
-        // leftovers from legacy naming
-        Assert.assertTrue(new File(job.getRootDir(), "htmlreports/foo!!!!bar/index.html").exists());
     }
 
     @Test

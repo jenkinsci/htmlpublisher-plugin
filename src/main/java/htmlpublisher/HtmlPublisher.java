@@ -35,6 +35,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -45,8 +47,12 @@ import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Functions;
+import hudson.util.DirScanner;
+import jenkins.util.SystemProperties;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -56,6 +62,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
+import hudson.Functions;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
@@ -77,6 +84,11 @@ import jenkins.model.Jenkins;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import htmlpublisher.util.MultithreadedFileCopyHelper;
+import jenkins.util.Timer;
+
+import static hudson.Functions.htmlAttributeEscape;
+
 
 /**
  * Saves HTML reports for the project and publishes them.
@@ -85,6 +97,18 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * @author Mike Rooney
  */
 public class HtmlPublisher extends Recorder {
+
+    /**
+     * Restores old behavior before SECURITY-3303
+     */
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Yes it should, but this allows the ability to change it via script in runtime.")
+    static /*almost final*/ boolean FOLLOW_SYMLINKS = SystemProperties.getBoolean(HtmlPublisher.class.getName() + ".FOLLOW_SYMLINKS", false);
+    
+    /**
+     * Set timeout when publishing multithreaded
+     */
+    static /*almost final*/ int PUBLISH_WORKER_TIMEOUT = SystemProperties.getInteger(HtmlPublisher.class.getName() + ".PUBLISH_WORKER_TIMEOUT", 300);
+    
     private final List<HtmlPublisherTarget> reportTargets;
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
@@ -120,7 +144,7 @@ public class HtmlPublisher extends Recorder {
         return Util.toHexString(sha1.digest());
     }
 
-    public List<String> readFile(String filePath) throws 
+    public List<String> readFile(String filePath) throws
             java.io.IOException {
         return readFile(filePath, this.getClass());
     }
@@ -216,6 +240,7 @@ public class HtmlPublisher extends Recorder {
         for (HtmlPublisherTarget reportTarget : reportTargets) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
+            reportLines.add("<script type=\"text/javascript\" src=\"" + getStaticResourcesUrl() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
 
@@ -238,8 +263,22 @@ public class HtmlPublisher extends Recorder {
                     // We are only keeping one copy at the project level, so remove the old one.
                     targetDir.deleteRecursive();
                 }
-
-                if (archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir) == 0) {
+                int copied = 0;
+                if (FOLLOW_SYMLINKS) {
+                    copied = archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir);
+                } else {
+                	int numberOfWorkers = reportTarget.getNumberOfWorkers();
+                	DirScanner dirScanner = dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS);
+                	if (numberOfWorkers <= 1) {
+                		logger.println("[htmlpublisher] Copying recursive using current thread");
+                        copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, reportTarget.getIncludes());
+                	} else {
+                		logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
+                		copied = MultithreadedFileCopyHelper.copyRecursiveTo(
+                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get(), PUBLISH_WORKER_TIMEOUT, listener);
+                	}
+                }
+                if (copied == 0) {
                     if (!allowMissing) {
                         listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
                         final Result buildResult = build.getResult();
@@ -252,8 +291,10 @@ public class HtmlPublisher extends Recorder {
                         continue;
                     }
                 }
-            } catch (IOException e) {
-                Util.displayIOException(e, listener);
+            } catch (Exception e) {
+                if (e instanceof IOException) {
+                    Util.displayIOException((IOException) e, listener);
+                }
                 Functions.printStackTrace(e, listener.fatalError("HTML Publisher failure"));
                 build.setResult(Result.FAILURE);
                 return false;
@@ -298,23 +339,14 @@ public class HtmlPublisher extends Recorder {
                 } else {
                     reportFile = report;
                 }
-                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" onclick=\"updateBody('" + tabNo + "');\" value=\"" + report + "\">" + getTitle(reportFile, titles, j) + "</li>";
+                String tabItem = "<li id=\"" + tabNo + "\" class=\"unselected\" value=\"" + htmlAttributeEscape(report) + "\">" + htmlAttributeEscape(getTitle(reportFile, titles, j)) + "</li>";
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Jenkins.get().getRootUrl();
             Job<?,?> job = build.getParent();
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to " + job.getName() + "\";</script>");
-            // If the URL isn't configured in Hudson, the best we can do is attempt to go Back.
-            if (hudsonUrl == null) {
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").onclick = function() { history.go(-1); return false; };</script>");
-            } else {
-                String jobUrl = hudsonUrl + job.getUrl();
-                reportLines.add("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"" + jobUrl + "\";</script>");
-            }
-
-            reportLines.add("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/" + reportTarget.getSanitizedName() + ".zip\";</script>");
-
+            reportLines.add("<span class='links-data-holder' data-back-to-name='" + job.getName() + "' data-root-url='" +
+                    hudsonUrl + "' data-job-url='" + job.getUrl() + "' data-zip-link='" + reportTarget.getSanitizedName() + "'/>");
             // Now add the footer.
             reportLines.addAll(footerLines);
             // And write this as the index
@@ -350,19 +382,39 @@ public class HtmlPublisher extends Recorder {
             List<Action> actions = new ArrayList<>();
             for (HtmlPublisherTarget target : this.reportTargets) {
                 actions.add(target.getProjectAction(project));
-                if (project instanceof MatrixProject && ((MatrixProject) project).getActiveConfigurations() != null){
-                    for (MatrixConfiguration mc : ((MatrixProject) project).getActiveConfigurations()){
-                        try {
-                          mc.onLoad(mc.getParent(), mc.getName());
-                        }
-                        catch (IOException e){
-                            //Could not reload the configuration.
-                        }
-                    }
+                if (project.getClass().getName().equals("hudson.matrix.MatrixProject")) {
+                    adjustMatrixProject(project);
                 }
             }
             return actions;
         }
+    }
+
+    private static String getStaticResourcesUrl() {
+        String rootUrl = Jenkins.get().getRootUrl();
+        if (rootUrl == null) {
+            rootUrl = "";
+        }
+
+        return StringUtils.stripEnd(rootUrl, "/") + Functions.getResourcePath();
+    }
+
+    private static void adjustMatrixProject(AbstractProject<?, ?> project) {
+        MatrixProject mp = (MatrixProject) project;
+        if (mp.getActiveConfigurations() != null) {
+            for (MatrixConfiguration mc : mp.getActiveConfigurations()) {
+                try {
+                    mc.onLoad(mc.getParent(), mc.getName());
+                } catch (IOException e) {
+                    //Could not reload the configuration.
+                }
+            }
+        }
+    }
+
+    @SuppressRestrictedWarnings(NoExternalUse.class)
+    public static DirScanner dirScannerGlob(String includes, String excludes, boolean useDefaultExcludes, OpenOption... openOptions) throws Exception {
+        return new DirScanner.Glob(includes, excludes, useDefaultExcludes, openOptions);
     }
 
     @Extension

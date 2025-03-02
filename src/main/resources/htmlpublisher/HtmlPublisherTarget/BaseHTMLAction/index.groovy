@@ -2,12 +2,16 @@ package htmlpublisher.HtmlPublisherTarget.BaseHTMLAction
 
 import htmlpublisher.HtmlPublisher
 import htmlpublisher.HtmlPublisherTarget
+import hudson.Functions
 import hudson.Util
+import hudson.model.Descriptor
 
 import java.security.MessageDigest
 
 l = namespace(lib.LayoutTagLib)
 st = namespace("jelly:stapler")
+
+Functions.initPageVariables(context)
 
 def text = new File(my.dir(), my.getHTMLTarget().getWrapperName()).text
 
@@ -25,9 +29,10 @@ def serveWrapper() {
     def footer = HtmlPublisher.class.getResourceAsStream("/htmlpublisher/HtmlPublisher/footer.html").text
 
     raw(header)
+    script(src: "${resURL}/plugin/htmlpublisher/js/htmlpublisher.js", type: "text/javascript")
 
     def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
-    def matcher = legacyFile.text =~ /<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value="([^"]+)">([^<]+)<\/li>/
+    def matcher = legacyFile.text =~ /<li id="tab\d+" class="unselected"(?: onclick="updateBody\('tab\d+'\);")? value="([^"]+)">([^<]+)<\/li>/
 
     def items = []
     def itemsTitle = []
@@ -38,14 +43,15 @@ def serveWrapper() {
 
     def idx = 1
     items.each { file ->
-        li(itemsTitle[idx - 1], id: "tab${idx}", class: "unselected", onclick: "updateBody('tab${idx}')", value: file.trim())
+        li(itemsTitle[idx - 1], id: "tab${idx}", class: "unselected", value: file.trim())
         idx++
     }
 
-    // TODO replace unnecessary JS usage by properly integrating header.html/footer.html in this groovy view
-    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").innerHTML=\"Back to ${my.backToName}\";</script>")
-    raw("<script type=\"text/javascript\">document.getElementById(\"hudson_link\").href=\"${rootURL}/${my.backToUrl}\";</script>")
-    raw("<script type=\"text/javascript\">document.getElementById(\"zip_link\").href=\"*zip*/${my.getHTMLTarget().sanitizedName}.zip\";</script>")
+    span(class: "links-data-holder", 
+            "data-back-to-name": "${my.backToName}",
+            "data-root-url": "${rootURL}",
+            "data-job-url": "${my.backToUrl}",
+            "data-zip-link": "${my.getHTMLTarget().sanitizedName}")
 
     raw(footer)
 }
@@ -56,6 +62,30 @@ def serveWrapperLegacyDirectly() {
     st.contentType(value: "text/html;charset=UTF-8")
 
     def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
+
+    def scriptPattern = legacyFile.text =~ /(<script type="text\/javascript">document.getElementById\("hudson_link"\).innerHTML="Back to )(.*[<>"\\].*)(";<\/script>)/
+
+    if (scriptPattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Job Name", "JobName")
+    }
+
+    def tabPattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")(.*[<>"\\].*)(">)(.*[<>"\\].*)(<\/li>)/
+
+    if (tabPattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
+
+    def valuePattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")([^<]+)(">)(.*[<>"\\].*)(<\/li>)/
+
+    if (valuePattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
+
+    def titlePattern = legacyFile.text =~ /(<li id="tab\d+" class="unselected" onclick="updateBody\('tab\d+'\);" value=")(.*[<>"\\].*)(">)([^<]+)(<\/li>)/
+
+    if (titlePattern.find()) {
+        throw new Descriptor.FormException("Can't use illegal character in the Report Name", "ReportName")
+    }
 
     raw(legacyFile.text)
 }
