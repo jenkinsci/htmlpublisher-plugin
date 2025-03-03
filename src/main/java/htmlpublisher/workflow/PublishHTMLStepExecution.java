@@ -27,6 +27,7 @@ import java.util.Collections;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 
@@ -44,6 +45,7 @@ import hudson.model.TaskListener;
 public class PublishHTMLStepExecution extends SynchronousNonBlockingStepExecution<Void> {
     private static final long serialVersionUID = 1L;
 
+    @SuppressFBWarnings(value = "SE_TRANSIENT_FIELD_NOT_RESTORED")
     private final transient PublishHTMLStep step;
 
     PublishHTMLStepExecution(PublishHTMLStep step, @NonNull StepContext context) {

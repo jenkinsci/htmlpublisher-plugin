@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import hudson.Functions;
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
 import org.apache.commons.lang.StringUtils;
@@ -133,8 +134,8 @@ public class HtmlPublisher extends Recorder {
         try (FileOutputStream fos = new FileOutputStream(path);
                 OutputStreamWriter osw = new OutputStreamWriter(fos, Charset.defaultCharset());
                 BufferedWriter bw = new BufferedWriter(osw)) {
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i) + "\n";
+            for (String s : lines) {
+                String line = s + "\n";
                 bw.write(line);
                 sha1.update(line.getBytes(StandardCharsets.UTF_8));
             }
@@ -236,11 +237,10 @@ public class HtmlPublisher extends Recorder {
         }
 
 
-        for (int i=0; i < reportTargets.size(); i++) {
+        for (HtmlPublisherTarget reportTarget : reportTargets) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
             reportLines.add("<script type=\"text/javascript\" src=\"" + getStaticResourcesUrl() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
-            HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
 
@@ -255,7 +255,7 @@ public class HtmlPublisher extends Recorder {
                     listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                     if (!allowMissing) {
                         build.setResult(Result.FAILURE);
-                        return true;
+                        return false;
                     }
                 }
 
@@ -286,7 +286,7 @@ public class HtmlPublisher extends Recorder {
                             listener.error("This is especially strange since your build otherwise succeeded.");
                         }
                         build.setResult(Result.FAILURE);
-                        return true;
+                        return false;
                     } else {
                         continue;
                     }
@@ -295,9 +295,9 @@ public class HtmlPublisher extends Recorder {
                 if (e instanceof IOException) {
                     Util.displayIOException((IOException) e, listener);
                 }
-                e.printStackTrace(listener.fatalError("HTML Publisher failure"));
+                Functions.printStackTrace(e, listener.fatalError("HTML Publisher failure"));
                 build.setResult(Result.FAILURE);
-                return true;
+                return false;
             }
 
             // Index files might be a list of ant patterns, e.g. "**/*index.html,**/*otherFile.html"
@@ -311,15 +311,14 @@ public class HtmlPublisher extends Recorder {
             }
 
             String[] titles = null;
-            if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0 ) {
+            if (reportTarget.getReportTitles() != null && reportTarget.getReportTitles().trim().length() > 0) {
                 titles = reportTarget.getReportTitles().trim().split("\\s*,\\s*");
                 for (int j = 0; j < titles.length; j++) {
                     titles[j] = resolveParametersInString(build, listener, titles[j]);
                 }
             }
 
-            List<String> reports = new ArrayList<>();
-            for (int j=0; j < csvReports.size(); j++) {
+            for (int j = 0; j < csvReports.size(); j++) {
                 String report = csvReports.get(j);
                 report = report.trim();
                 // On windows file paths contains back slashes, but
@@ -331,7 +330,6 @@ public class HtmlPublisher extends Recorder {
                     continue;
                 }
 
-                reports.add(report);
                 String tabNo = "tab" + (j + 1);
                 // Make the report name the filename without the extension.
                 int end = report.lastIndexOf('.');
@@ -346,7 +344,7 @@ public class HtmlPublisher extends Recorder {
             }
             // Add the JS to change the link as appropriate.
             String hudsonUrl = Jenkins.get().getRootUrl();
-            Job job = build.getParent();
+            Job<?,?> job = build.getParent();
             reportLines.add("<span class='links-data-holder' data-back-to-name='" + job.getName() + "' data-root-url='" +
                     hudsonUrl + "' data-job-url='" + job.getUrl() + "' data-zip-link='" + reportTarget.getSanitizedName() + "'/>");
             // Now add the footer.
@@ -354,15 +352,15 @@ public class HtmlPublisher extends Recorder {
             // And write this as the index
             File outputFile = new File(targetDir.getRemote(), reportTarget.getWrapperName());
             try {
-                if(archiveDir.exists()) {
+                if (archiveDir.exists()) {
                     String checksum = writeFile(reportLines, outputFile);
                     reportTarget.handleAction(build, checksum);
                 }
             } catch (IOException e) {
-                logger.println("Error: IOException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: IOException occured writing report to file " + outputFile.getAbsolutePath() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage());
             } catch (NoSuchAlgorithmException e) {
                 // cannot happen because SHA-1 is guaranteed to exist
-                logger.println("Error: NoSuchAlgorithmException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: NoSuchAlgorithmException occured writing report to file " + outputFile.getAbsolutePath() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage());
             }
         }
         return true;
