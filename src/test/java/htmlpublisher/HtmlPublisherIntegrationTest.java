@@ -12,14 +12,14 @@ import hudson.slaves.JNLPLauncher;
 import hudson.slaves.RetentionStrategy;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.BuildWatcher;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TemporaryDirectoryAllocator;
 import org.jvnet.hudson.test.TestBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 
@@ -36,27 +36,28 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Kohsuke Kawaguchi
  */
-public class HtmlPublisherIntegrationTest {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
-    @Rule
-    public BuildWatcher buildWatcher = new BuildWatcher();
+@WithJenkins
+class HtmlPublisherIntegrationTest {
 
-    public TemporaryDirectoryAllocator tmp = new TemporaryDirectoryAllocator();
-    private GenericContainer agentContainer;
+    private JenkinsRule j;
+
+    private final TemporaryDirectoryAllocator tmp = new TemporaryDirectoryAllocator();
+    private GenericContainer<?> agentContainer;
     private DumbSlave agent;
 
-    @After
-    public void dispose() throws IOException, InterruptedException {
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
+
+    @AfterEach
+    void dispose() throws IOException, InterruptedException {
         tmp.dispose();
         if (agentContainer != null) {
             agentContainer.stop();
@@ -67,7 +68,7 @@ public class HtmlPublisherIntegrationTest {
      * Makes sure that the configuration survives the round trip.
      */
     @Test
-    public void testConfigRoundtrip() throws Exception {
+    void testConfigRoundtrip() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject();
         HtmlPublisherTarget[] l = {
                 new HtmlPublisherTarget("a", "b", "c", true, true, false),
@@ -86,7 +87,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testIncludes() throws Exception {
+    void testIncludes() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("include_job");
         final String reportDir = "autogen";
         p.getBuildersList().add(new TestBuilder() {
@@ -120,8 +121,9 @@ public class HtmlPublisherIntegrationTest {
         assertFalse(tab2Files.contains("dummy.html"));
     }
 
-    @Test @Issue("SECURITY-3303")
-    public void testNotFollowingSymlinks() throws Exception {
+    @Test
+    @Issue("SECURITY-3303")
+    void testNotFollowingSymlinks() throws Exception {
         createDockerAgent();
         final File directoryOnController = tmp.allocate();
         FileUtils.write(new File(directoryOnController, "test.txt"), "test", StandardCharsets.UTF_8);
@@ -137,7 +139,7 @@ public class HtmlPublisherIntegrationTest {
             }
         });
         HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "", "tab1/test.txt,tab1/test2.txt,**/test3.txt", true, false, true);
-        p.getPublishersList().add(new HtmlPublisher(Arrays.asList(target1)));
+        p.getPublishersList().add(new HtmlPublisher(List.of(target1)));
         p.setAssignedLabel(Label.get("agent"));
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         File base = new File(build.getRootDir(), "htmlreports");
@@ -154,7 +156,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testVariableExpansion() throws Exception {
+    void testVariableExpansion() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         addEnvironmentVariable("MYREPORTNAME", "reportname");
         addEnvironmentVariable("MYREPORTFILES", "afile.html");
@@ -181,7 +183,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testWithWildcardPatterns() throws Exception {
+    void testWithWildcardPatterns() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         final String reportDir = "autogen";
         p.getBuildersList().add(new TestBuilder() {
@@ -207,7 +209,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testAllowMissingStillRunsSubsequentReports() throws Exception {
+    void testAllowMissingStillRunsSubsequentReports() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -229,7 +231,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testNotAllowMissingDoesntRunSubsequentReports() throws Exception {
+    void testNotAllowMissingDoesntRunSubsequentReports() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -252,7 +254,7 @@ public class HtmlPublisherIntegrationTest {
     }
 
     @Test
-    public void testUseWrapperFileDirectly() throws Exception {
+    void testUseWrapperFileDirectly() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("use_wrapper_job");
         final String reportDir = "autogen_use_wrapper";
         p.getBuildersList().add(new TestBuilder() {
@@ -284,9 +286,9 @@ public class HtmlPublisherIntegrationTest {
         assertTrue(new File(build.getRootDir(), "htmlreports/tab1/htmlpublisher-wrapper.html").exists());
         assertTrue(new File(build.getRootDir(), "htmlreports/tab2/htmlpublisher-wrapper.html").exists());
     }
-    
+
     @Test
-    public void testMultithreaded() throws Exception {
+    void testMultithreaded() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -306,14 +308,14 @@ public class HtmlPublisherIntegrationTest {
         targets.add(target2);
         p.getPublishersList().add(new HtmlPublisher(targets));
         AbstractBuild build = j.buildAndAssertSuccess(p);
-        assertTrue("reportnameA/htmlpublisher-wrapper.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
-        assertTrue("reportnameA/file1.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file1.html").exists());
-        assertTrue("reportnameA/file2.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file2.html").exists());
-        assertFalse("reportnameB/htmlpublisher-wrapper.html must not exist", new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists(), "reportnameA/htmlpublisher-wrapper.html must exist");
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/file1.html").exists(), "reportnameA/file1.html must exist");
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/file2.html").exists(), "reportnameA/file2.html must exist");
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists(), "reportnameB/htmlpublisher-wrapper.html must not exist");
     }
 
     @Test
-    public void testIcon() throws Exception {
+    void testIcon() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -333,14 +335,14 @@ public class HtmlPublisherIntegrationTest {
         targets.add(target2);
         p.getPublishersList().add(new HtmlPublisher(targets));
         AbstractBuild build = j.buildAndAssertSuccess(p);
-        assertTrue("reportnameA/htmlpublisher-wrapper.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists());
-        assertTrue("reportnameA/file1.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file1.html").exists());
-        assertTrue("reportnameA/file2.html must exist", new File(build.getRootDir(), "htmlreports/reportnameA/file2.html").exists());
-        assertFalse("reportnameB/htmlpublisher-wrapper.html must not exist", new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/htmlpublisher-wrapper.html").exists(), "reportnameA/htmlpublisher-wrapper.html must exist");
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/file1.html").exists(), "reportnameA/file1.html must exist");
+        assertTrue(new File(build.getRootDir(), "htmlreports/reportnameA/file2.html").exists(), "reportnameA/file2.html must exist");
+        assertFalse(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists(), "reportnameB/htmlpublisher-wrapper.html must not exist");
     }
 
     @Test
-    public void testPublishesTwoReportsOneJob() throws Exception {
+    void testPublishesTwoReportsOneJob() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("variable_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -370,11 +372,11 @@ public class HtmlPublisherIntegrationTest {
     }
 
     private void createDockerAgent() throws Exception {
-        assumeTrue("Needs Docker", DockerClientFactory.instance().isDockerAvailable());
+        assumeTrue(DockerClientFactory.instance().isDockerAvailable(), "Needs Docker");
         j.jenkins.setSlaveAgentPort(0);
         int port = j.jenkins.getTcpSlaveAgentListener().getAdvertisedPort();
         synchronized (j.jenkins) {
-            agent = new DumbSlave("dockeragentOne", "/home/jenkins/work", new JNLPLauncher(true));
+            agent = new DumbSlave("dockeragentOne", "/home/jenkins/work", new JNLPLauncher());
             agent.setLabelString("agent");
             agent.setRetentionStrategy(RetentionStrategy.NOOP);
             j.jenkins.addNode(agent);
@@ -402,7 +404,7 @@ public class HtmlPublisherIntegrationTest {
         }
 
         @Override
-        public Void invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+        public Void invoke(File f, VirtualChannel channel) throws IOException {
             Files.createSymbolicLink(Paths.get(f.getAbsolutePath(), "tab1"), Paths.get(target));
             return null;
         }
