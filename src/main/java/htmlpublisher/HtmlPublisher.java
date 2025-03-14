@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
 import org.apache.commons.lang.StringUtils;
@@ -100,7 +99,6 @@ public class HtmlPublisher extends Recorder {
     /**
      * Restores old behavior before SECURITY-3303
      */
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Yes it should, but this allows the ability to change it via script in runtime.")
     static /*almost final*/ boolean FOLLOW_SYMLINKS = SystemProperties.getBoolean(HtmlPublisher.class.getName() + ".FOLLOW_SYMLINKS", false);
     
     /**
@@ -148,7 +146,6 @@ public class HtmlPublisher extends Recorder {
         return readFile(filePath, this.getClass());
     }
 
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "Apparent false positive on JDK11 on try block")
     public static List<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.IOException {
         List<String> aList = new ArrayList<>();
