@@ -1,12 +1,14 @@
 package htmlpublisher;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HtmlPublisherTest {
+class
+HtmlPublisherTest {
+
     @Test
-    public void testDefaultIncludes() {
+    void testDefaultIncludes() {
         HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
         assertEquals(HtmlPublisherTarget.INCLUDE_ALL_PATTERN, target1.getIncludes());
         target1.setIncludes(null);
@@ -18,15 +20,15 @@ public class HtmlPublisherTest {
     }
 
     @Test
-    public void testSpacesTrimmed() {
+    void testSpacesTrimmed() {
         HtmlPublisherTarget target = new HtmlPublisherTarget("tab1 ", "target ", "tab1.html ", true, true, false);
-        assertEquals(target.getReportName(), "tab1");
-        assertEquals(target.getReportDir(), "target");
-        assertEquals(target.getReportFiles(), "tab1.html");
+        assertEquals("tab1", target.getReportName());
+        assertEquals("target", target.getReportDir());
+        assertEquals("tab1.html", target.getReportFiles());
     }
 
     @Test
-    public void testEscapeUnderscores() {
+    void testEscapeUnderscores() {
         // test underscores escaped when requested
         assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", true), HtmlPublisherTarget.sanitizeReportName("foo_5fbar", false));
 
@@ -34,19 +36,19 @@ public class HtmlPublisherTest {
         assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
 
     }
-    
+
     @Test
-    public void testNumberOfWorkers() {
+    void testNumberOfWorkers() {
         HtmlPublisherTarget target = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
-        
+
         // Test default behavior
-        assertEquals(target.getNumberOfWorkers(), 0);
-        
+        assertEquals(0, target.getNumberOfWorkers());
+
         // Test explicit value
         target.setNumberOfWorkers(0);
-        assertEquals(target.getNumberOfWorkers(), 0);
+        assertEquals(0, target.getNumberOfWorkers());
 
         target.setNumberOfWorkers(1);
-        assertEquals(target.getNumberOfWorkers(), 1);
+        assertEquals(1, target.getNumberOfWorkers());
     }
 }
