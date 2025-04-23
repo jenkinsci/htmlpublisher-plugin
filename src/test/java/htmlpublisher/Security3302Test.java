@@ -5,10 +5,11 @@ import hudson.tasks.Shell;
 import org.htmlunit.AlertHandler;
 import org.htmlunit.FailingHttpStatusCodeException;
 import org.htmlunit.Page;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 import java.util.ArrayList;
@@ -19,16 +20,21 @@ import static hudson.Functions.isWindows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class Security3302Test {
+@WithJenkins
+class Security3302Test {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void security3302sanitizeJobNameTest() throws Exception {
+    void security3302sanitizeJobNameTest() throws Exception {
 
         // Skip on windows
         assumeFalse(isWindows());
@@ -49,7 +55,7 @@ public class Security3302Test {
         target.setEscapeUnderscores(true);
         target.setReportTitles("");
         target.setIncludes("**/*");
-        
+
         List<HtmlPublisherTarget> reportTargets = new ArrayList<>();
         reportTargets.add(target);
 
@@ -79,7 +85,7 @@ public class Security3302Test {
     @Test
     @LocalData
     @Issue("security-3302")
-    public void oldReportJobNameTest() throws Exception {
+    void oldReportJobNameTest() throws Exception {
         // Skip on windows
         assumeFalse(isWindows());
         List<FreeStyleProject> items = j.jenkins.getItems(FreeStyleProject.class);
@@ -111,7 +117,7 @@ public class Security3302Test {
     }
 
     @Test
-    public void security3302sanitizeOptionalNameTest() throws Exception {
+    void security3302sanitizeOptionalNameTest() throws Exception {
 
         // Skip on windows
         assumeFalse(isWindows());
@@ -160,7 +166,7 @@ public class Security3302Test {
     }
 
     @Test
-    public void security3302sanitizeExistingReportTitleTest() throws Exception {
+    void security3302sanitizeExistingReportTitleTest() throws Exception {
 
         // Skip on windows
         assumeFalse(isWindows());
@@ -209,7 +215,7 @@ public class Security3302Test {
 
     // This class is used to check for any alerts that are triggered on a page
     static class Alerter implements AlertHandler {
-        List<String> messages = Collections.synchronizedList(new ArrayList<>());
+        final List<String> messages = Collections.synchronizedList(new ArrayList<>());
         @Override
         public void handleAlert(final Page page, final String message) {
             messages.add(message);
