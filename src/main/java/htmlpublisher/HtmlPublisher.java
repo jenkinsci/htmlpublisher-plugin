@@ -356,10 +356,10 @@ public class HtmlPublisher extends Recorder {
                     reportTarget.handleAction(build, checksum);
                 }
             } catch (IOException e) {
-                logger.println("Error: IOException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: IOException occurred writing report to file '" + outputFile.getName() + "' in archive directory '" + archiveDir.getName() + "', error: " + e.getMessage());
             } catch (NoSuchAlgorithmException e) {
                 // cannot happen because SHA-1 is guaranteed to exist
-                logger.println("Error: NoSuchAlgorithmException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: NoSuchAlgorithmException occurred writing report to file '" + outputFile.getName() + "' in archive directory '" + archiveDir.getName() + "', error: " + e.getMessage());
             }
         }
         return true;
