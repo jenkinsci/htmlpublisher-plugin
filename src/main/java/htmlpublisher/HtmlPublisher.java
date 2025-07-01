@@ -245,7 +245,7 @@ public class HtmlPublisher extends Recorder {
             FilePath targetDir = reportTarget.getArchiveTarget(build);
 
             String levelString = keepAll ? "BUILD" : "PROJECT";
-            logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
+            logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir.getName());
 
             try {
                 if (!archiveDir.exists()) {
@@ -277,7 +277,7 @@ public class HtmlPublisher extends Recorder {
                 }
                 if (copied == 0) {
                     if (!allowMissing) {
-                        listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
+                        listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir.getName() + "'.");
                         final Result buildResult = build.getResult();
                         if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
                             listener.error("This is especially strange since your build otherwise succeeded.");
@@ -356,10 +356,10 @@ public class HtmlPublisher extends Recorder {
                     reportTarget.handleAction(build, checksum);
                 }
             } catch (IOException e) {
-                logger.println("Error: IOException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: IOException occurred writing report to file " + outputFile.getName() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage().replace(outputFile.getParent(), ""));
             } catch (NoSuchAlgorithmException e) {
                 // cannot happen because SHA-1 is guaranteed to exist
-                logger.println("Error: NoSuchAlgorithmException occured writing report to file "+outputFile.getAbsolutePath()+" to archiveDir:"+archiveDir.getName()+", error:"+e.getMessage());
+                logger.println("Error: NoSuchAlgorithmException occurred writing report to file " + outputFile.getName() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage().replace(outputFile.getParent(), ""));
             }
         }
         return true;
