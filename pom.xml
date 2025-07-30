@@ -4,12 +4,13 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.7</version>
+    <version>5.12</version>
     <relativePath />
   </parent>
 
   <properties>
-    <changelist>999999-SNAPSHOT</changelist>
+    <revision>428</revision>
+    <changelist>-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
     <jenkins.baseline>2.479</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
@@ -25,7 +26,7 @@
 
   <artifactId>htmlpublisher</artifactId>
   <packaging>hpi</packaging>
-  <version>${changelist}</version>
+  <version>${revision}${changelist}</version>
   <name>HTML Publisher plugin</name>
   <description>This plugin publishes HTML reports.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
@@ -103,7 +104,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.20.5</version>
+      <version>1.20.6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -132,20 +133,4 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.infradna.tool</groupId>
-        <artifactId>bridge-method-injector</artifactId>
-        <version>1.30</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>process</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

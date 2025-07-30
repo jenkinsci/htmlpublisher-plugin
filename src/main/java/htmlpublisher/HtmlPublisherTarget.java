@@ -286,7 +286,13 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
                     icon = actualHtmlPublisherTarget.icon;
                 }
                 else {
-                    icon = project.getUrl() + dir().getName() + "/" + actualHtmlPublisherTarget.icon;
+                    File iconFile = new File(dir(), actualHtmlPublisherTarget.icon);
+
+                    if(iconFile.exists()){
+                        icon = project.getUrl() + dir().getName() + "/" + actualHtmlPublisherTarget.icon;
+                    }else{
+                        icon = "symbol-document-text"; 
+                    }
                 }
             } else {
                 icon = "symbol-document-text";

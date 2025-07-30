@@ -45,8 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.Functions;
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
 import org.apache.commons.lang.StringUtils;
@@ -101,7 +99,6 @@ public class HtmlPublisher extends Recorder {
     /**
      * Restores old behavior before SECURITY-3303
      */
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Yes it should, but this allows the ability to change it via script in runtime.")
     static /*almost final*/ boolean FOLLOW_SYMLINKS = SystemProperties.getBoolean(HtmlPublisher.class.getName() + ".FOLLOW_SYMLINKS", false);
     
     /**
@@ -149,7 +146,6 @@ public class HtmlPublisher extends Recorder {
         return readFile(filePath, this.getClass());
     }
 
-    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE", justification = "Apparent false positive on JDK11 on try block")
     public static List<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.IOException {
         List<String> aList = new ArrayList<>();
@@ -248,7 +244,7 @@ public class HtmlPublisher extends Recorder {
             FilePath targetDir = reportTarget.getArchiveTarget(build);
 
             String levelString = keepAll ? "BUILD" : "PROJECT";
-            logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir);
+            logger.println("[htmlpublisher] Archiving at " + levelString + " level " + archiveDir + " to " + targetDir.getName());
 
             try {
                 if (!archiveDir.exists()) {
@@ -280,7 +276,7 @@ public class HtmlPublisher extends Recorder {
                 }
                 if (copied == 0) {
                     if (!allowMissing) {
-                        listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir + "'.");
+                        listener.error("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir.getName() + "'.");
                         final Result buildResult = build.getResult();
                         if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
                             listener.error("This is especially strange since your build otherwise succeeded.");
@@ -357,10 +353,10 @@ public class HtmlPublisher extends Recorder {
                     reportTarget.handleAction(build, checksum);
                 }
             } catch (IOException e) {
-                logger.println("Error: IOException occured writing report to file " + outputFile.getAbsolutePath() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage());
+                logger.println("Error: IOException occurred writing report to file " + outputFile.getName() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage().replace(outputFile.getParent(), ""));
             } catch (NoSuchAlgorithmException e) {
                 // cannot happen because SHA-1 is guaranteed to exist
-                logger.println("Error: NoSuchAlgorithmException occured writing report to file " + outputFile.getAbsolutePath() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage());
+                logger.println("Error: NoSuchAlgorithmException occurred writing report to file " + outputFile.getName() + " to archiveDir:" + archiveDir.getName() + ", error:" + e.getMessage().replace(outputFile.getParent(), ""));
             }
         }
         return true;

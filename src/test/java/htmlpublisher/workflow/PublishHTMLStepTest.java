@@ -184,6 +184,57 @@ public class PublishHTMLStepTest {
         r.assertLogContains("STEP_AFTER_PUBLISH_HTML", run);
     }
 
+    @Test
+    public void testGetIconFileNameSymbolIcon() throws Exception {
+        // Prepare the environment
+        writeTestHTML("index.html");
+        
+        // Run the project
+        HtmlPublisherTarget target = new HtmlPublisherTarget("testReport", TEST_REPORT_DIR, "index.html", true, false, false);
+        target.setIcon("symbol-custom-icon");
+        setupAndRunProject(target);
+        
+        // Verify that getIconFileName() correctly returns the custom icon
+        HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
+        assertNotNull("Report should exist", jobReport);
+        assertEquals("symbol-custom-icon", jobReport.getIconFileName());
+    }
+
+    @Test
+    public void testGetIconFileNameCustomPath() throws Exception {
+        // Prepare the environment
+        writeTestHTML("index.html");
+        testReportDir.mkdirs();
+        File customIconFile = new File(testReportDir, "custom-icon.png");
+        customIconFile.createNewFile();
+
+        // Run the project
+        HtmlPublisherTarget target = new HtmlPublisherTarget("testReport", TEST_REPORT_DIR, "index.html", true, false, false);
+        target.setIcon("custom-icon.png");
+        setupAndRunProject(target);
+        
+        // Verify that getIconFileName() correctly returns the specified file
+        HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
+        assertNotNull("Report should exist", jobReport);
+        assertTrue("Icon should contain project URL", jobReport.getIconFileName().contains("custom-icon.png"));
+    }
+
+    @Test
+    public void testGetIconFileNameDefaultIfMissingFile() throws Exception {
+        // Prepare the environment
+        writeTestHTML("index.html");
+
+        // Run the project
+        HtmlPublisherTarget target = new HtmlPublisherTarget("testReport", TEST_REPORT_DIR, "index.html", true, false, false);
+        target.setIcon("custom-icon.png");
+        setupAndRunProject(target);
+        
+        // Verify that getIconFileName() correctly returns the default icon
+        HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
+        assertNotNull("Report should exist", jobReport);
+        assertEquals("symbol-document-text", jobReport.getIconFileName());
+    }
+
     private void writeTestHTML(String fileName) throws Exception {
         // Prepare the test file
         if (!testReportDir.exists() && !testReportDir.mkdirs()) {
