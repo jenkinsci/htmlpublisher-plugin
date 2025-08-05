@@ -17,8 +17,7 @@ import hudson.model.InvisibleAction;
 import hudson.model.Descriptor;
 import hudson.util.HttpResponses;
 import jenkins.model.RunAction2;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -31,6 +30,7 @@ import jakarta.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -224,9 +224,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         }
         Matcher m = p.matcher(reportName);
         StringBuffer sb = new StringBuffer();
+        HexFormat hex = HexFormat.of();
         while (m.find()) {
             String match = m.group();
-            m.appendReplacement(sb, "_" + Hex.encodeHexString(match.getBytes(StandardCharsets.UTF_8)));
+            m.appendReplacement(sb, "_" + hex.formatHex(match.getBytes(StandardCharsets.UTF_8)));
         }
         m.appendTail(sb);
         return sb.toString();
