@@ -46,5 +46,12 @@
     <f:entry field="icon" title="${%icon.title}">
       <f:textbox />
     </f:entry>
+    <f:entry field="contentSecurity" title="${%contentSecurity.title}">
+        <j:if test="${!descriptor.isAllowContentSecurityOverride()}">
+          <p>${%contentSecurityDisabled}</p>
+          <j:set var="readOnlyMode" value="true" />
+        </j:if>
+      <f:property field="contentSecurity"  />
+    </f:entry>
   </f:advanced>
 </j:jelly>

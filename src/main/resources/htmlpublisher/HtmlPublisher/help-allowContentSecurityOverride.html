@@ -1,0 +1,12 @@
+<div>
+    If checked, will allow users with permissions to configure jobs to server archived
+    artifacts with a less restrictive Content Security Policy then is configured for the
+    rest of the Jenkins instance.
+    <br /><br />
+    This could allow a malicious user with access to configure a job to serve pages with
+    Cross-Site Scripting (XSS) exploits that could be used to attack other Jenkins users
+    or attempt to steal Administrator  credentials.
+    <br /><br />
+    <b>Only enable this option if archived HTML pages are not rendering properly, and
+    users with permission to configure jobs are trusted.</b>
+</div>
