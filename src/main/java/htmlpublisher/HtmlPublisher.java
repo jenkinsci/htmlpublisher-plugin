@@ -47,6 +47,7 @@ import java.util.List;
 
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -84,6 +85,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import htmlpublisher.util.MultithreadedFileCopyHelper;
 import jenkins.util.Timer;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import static hudson.Functions.htmlAttributeEscape;
 
@@ -418,6 +420,9 @@ public class HtmlPublisher extends Recorder {
 
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
+        private boolean allowContentSecurityOverride;
+
         @Override
         @NonNull
         public String getDisplayName() {
@@ -436,6 +441,16 @@ public class HtmlPublisher extends Recorder {
         @Override
         public boolean isApplicable(Class<? extends AbstractProject> jobType) {
             return true;
+        }
+
+        @Override
+        public boolean configure(final StaplerRequest2 req, final JSONObject o) {
+            this.allowContentSecurityOverride = o.getBoolean("allowContentSecurityOverride");
+            return true;
+        }
+
+        public boolean isAllowContentSecurityOverride() {
+            return allowContentSecurityOverride;
         }
     }
 

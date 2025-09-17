@@ -53,7 +53,7 @@ def serveWrapper() {
             "data-job-url": "${my.backToUrl}",
             "data-zip-link": "${my.getHTMLTarget().sanitizedName}")
 
-    raw(footer)
+    raw(String.format(footer, my.getIframeSandboxAttributes()))
 }
 
 def serveWrapperLegacyDirectly() {

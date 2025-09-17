@@ -15,7 +15,7 @@ import hudson.model.ProminentProjectAction;
 import hudson.model.AbstractBuild;
 import hudson.model.InvisibleAction;
 import hudson.model.Descriptor;
-import hudson.util.HttpResponses;
+import jenkins.model.Jenkins;
 import jenkins.model.RunAction2;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
@@ -23,8 +23,10 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
+import org.kohsuke.stapler.StaplerResponse2Wrapper;
 import org.owasp.encoder.Encode;
 
 import jakarta.servlet.ServletException;
@@ -32,10 +34,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static hudson.Functions.htmlAttributeEscape;
 
 /**
  * A representation of an HTML directory to archive and publish.
@@ -79,6 +80,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
      *  The path or symbol of an icon to use for the HTML report in the sidebar (relative to reportDir)
      */
     private String icon;
+
+    /**
+     * Settings to set in the Content-Security-Policy header of the displayed HTML pages
+     * and to manage the sandbox attribute of the iframe when using the wrapper file.
+     */
+    private ContentSecurity contentSecurity;
 
     /**
      * Do not use, but keep to maintain compatibility with older releases. See JENKINS-31366.
@@ -214,6 +221,15 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
         return sanitizeReportName(this.reportName, getEscapeUnderscores());
     }
 
+    public ContentSecurity getContentSecurity() {
+        return contentSecurity;
+    }
+
+    @DataBoundSetter
+    public void setContentSecurity(ContentSecurity contentSecurity) {
+        this.contentSecurity = contentSecurity;
+    }
+
     @Restricted(NoExternalUse.class)
     public static String sanitizeReportName(String reportName, boolean escapeUnderscores) {
         Pattern p;
@@ -312,6 +328,12 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return actualHtmlPublisherTarget.getAlwaysLinkToLastBuild();
         }
 
+        public String getIframeSandboxAttributes() {
+            return Optional.ofNullable(actualHtmlPublisherTarget.getContentSecurity())
+                    .map(ContentSecurity::createIframeSandboxAttributes)
+                    .orElse("");
+        }
+
         /**
          * Serves HTML reports.
          */
@@ -320,7 +342,25 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             if (req.getRestOfPath().isEmpty()) {
                 throw HttpResponses.forwardToView(this, "index.jelly");
             }
-            dbs.generateResponse(req, rsp, this);
+            StaplerResponse2Wrapper responseWrapper = new StaplerResponse2Wrapper(rsp) {
+                @Override
+                public void setHeader(String name, String value) {
+                    if (name.equals("Content-Security-Policy")) {
+                        super.setHeader(name, alterContentSecurityPolicy(value));
+                    } else {
+                        super.setHeader(name, value);
+                    }
+                }
+            };
+            dbs.generateResponse(req, responseWrapper, this);
+        }
+
+        private String alterContentSecurityPolicy(String csp) {
+            ContentSecurity targetContentSecurity = actualHtmlPublisherTarget.getContentSecurity();
+            if (targetContentSecurity == null) {
+                return csp;
+            }
+            return targetContentSecurity.createAlteredContentSecurityPolicy(csp);
         }
 
         protected abstract String getTitle();
@@ -593,5 +633,10 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     public static class DescriptorImpl extends Descriptor<HtmlPublisherTarget> {
         @NonNull
         public String getDisplayName() { return ""; }
+
+        // needed by config.jelly to show a warning and make fields read-only
+        public boolean isAllowContentSecurityOverride() {
+            return ((HtmlPublisher.DescriptorImpl) Jenkins.get().getDescriptorOrDie(HtmlPublisher.class)).isAllowContentSecurityOverride();
+        }
     }
 }
