@@ -12,9 +12,11 @@ import java.io.File;
 import java.io.IOException;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 public class MultithreadedFileCopyHelperTest {
@@ -32,37 +34,50 @@ public class MultithreadedFileCopyHelperTest {
 						}
 
 						private static final long serialVersionUID = 1L;
-					}, null, null, 1, Timer.get(), 10, TaskListener.NULL);
+
+					}, new FilePath(new File("")), // Target dir
+					null, // No description
+					1, Timer.get(), 10, TaskListener.NULL);
 		});
 
 	}
 
 	@Test
-	public void testWorkerWithTimeout() {
+	public void testWorkerWithTimeoutCancellation() {
+
+		final int numberOfWorkers = 2;
 
 		// Simulate a scheduler where all threads are busy so our worker gets no free
 		// slot and runs into timeout
-		ExecutorService singleExecutorService = Executors.newSingleThreadScheduledExecutor();
+		TrackingExecutorService executorService = new TrackingExecutorService(
+				Executors.newSingleThreadScheduledExecutor());
 
-		singleExecutorService.submit(() -> {
+		executorService.submit(() -> {
 			Thread.sleep(10000);
 			return true;
 		});
 
 		// Check, that we come to an end and a TimeoutException is propagated
 		assertThrows(TimeoutException.class, () -> {
+
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")), new DirScanner() {
-				public void scan(File file, FileVisitor visitor) {
+				public void scan(File file, FileVisitor visitor) throws IOException {
 					// noop
 				}
 
 				private static final long serialVersionUID = 1L;
-			}, null, null, // No target path, no description
-					1, // Start one worker
-					singleExecutorService, // Limit parallel processing to 1 thread
-					1, // Timeout = 1 second (too short!)
+			}, new FilePath(new File("target-dir")), // Target dir
+					null, // No description
+					numberOfWorkers, // Start number of workers
+					executorService, // Limit parallel processing to 1 thread
+					0, // Raise immediate timeout
 					TaskListener.NULL);
+
 		});
+
+		// Check, that our worker tasks are cancelled
+		long cancelledCount = executorService.getTrackedTasks().stream().filter(Future::isCancelled).count();
+		assertEquals("Expected our worker tasks to be cancelled", numberOfWorkers, cancelledCount);
 
 	}
 
