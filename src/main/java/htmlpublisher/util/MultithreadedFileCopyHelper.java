@@ -43,6 +43,8 @@ public class MultithreadedFileCopyHelper {
 
 		long startTime = System.currentTimeMillis();
 
+		Set<Future<Integer>> workers = new HashSet<>();
+
 		// Generating a queue key, that is used for the scanner and inside each worker
 		// for finding our queue
 		UUID queueKey = UUID.randomUUID();
@@ -51,7 +53,6 @@ public class MultithreadedFileCopyHelper {
 			// -------------------------------------------------------------
 			// Start multiple copy workers on the node (controller or agent)
 			// -------------------------------------------------------------
-			Set<Future<Integer>> workers = new HashSet<>();
 			for (int i = 0; i < numberOfWorkers; i++) {
 				workers.add(executorService.submit(() -> {
 					QueueReadingDirScanner queueReadingDirScanner = new QueueReadingDirScanner(queueKey);
@@ -67,10 +68,10 @@ public class MultithreadedFileCopyHelper {
 			// --------------------------------------------
 			// Collect the results on the controller
 			// --------------------------------------------
-			int transferedFiles = 0;
+			int transferredFiles = 0;
 			for (Future<Integer> worker : workers) {
 				try {
-					transferedFiles += worker.get(workerTimeoutInSeconds, TimeUnit.SECONDS); // Wait workers to finish
+					transferredFiles += worker.get(workerTimeoutInSeconds, TimeUnit.SECONDS); // Wait workers to finish
 				} catch (ExecutionException e) {
 					throw new IOException(e);
 				}
@@ -85,7 +86,7 @@ public class MultithreadedFileCopyHelper {
 					overallSizeInMB, overallSizeInMB / overallDurationInSeconds).println();
 
 			// Returning number of transfered files
-			return transferedFiles;
+			return transferredFiles;
 
 		} finally {
 			// ----------------------------------------------------------------------------
@@ -93,6 +94,12 @@ public class MultithreadedFileCopyHelper {
 			// a corrupt state
 			// ----------------------------------------------------------------------------
 			archiveDir.act(new QueueShutdownAndRemover(queueKey));
+			
+			// Ensure, that all workers are stopped
+	        for (Future<?> worker : workers) {
+	            worker.cancel(true);
+	        }
+
 		}
 
 	}
