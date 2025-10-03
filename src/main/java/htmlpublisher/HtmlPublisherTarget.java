@@ -410,11 +410,6 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
             return build;
         }
 
-        @Deprecated
-        private final Object getAbstractBuildOwner(Run build, Class targetClass) {
-            return build instanceof AbstractBuild ? (AbstractBuild) build : null;
-        }
-
         @Override
         public void onAttached(Run<?, ?> r) {
             this.build = r;
