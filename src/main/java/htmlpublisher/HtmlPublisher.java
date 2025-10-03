@@ -249,11 +249,13 @@ public class HtmlPublisher extends Recorder {
 
             try {
                 if (!archiveDir.exists()) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                     if (!allowMissing) {
+                        listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                         build.setResult(Result.FAILURE);
                         return true;
                     }
+
+                    logger.println("[htmlpublisher] Specified HTML directory '" + archiveDir + "' does not exist.");
                 }
 
                 if (!keepAll) {
