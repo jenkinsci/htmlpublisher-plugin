@@ -1,21 +1,22 @@
 package htmlpublisher.util;
 
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 
 import hudson.util.DirScanner;
 import hudson.util.FileVisitor;
 
+import java.io.Serial;
 import java.util.UUID;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class DirScanningQueueWriterTest {
+import org.junit.jupiter.api.Test;
 
-	@Test
-	public void testInvokeWithIOException() {
+class DirScanningQueueWriterTest {
+
+    @Test
+    void testInvokeWithIOException() {
 
 		UUID queueKey = UUID.randomUUID();
 		FileEntryQueue queue = FileEntryQueue.getOrCreateQueue(queueKey);
@@ -28,19 +29,17 @@ public class DirScanningQueueWriterTest {
 				throw new IOException();
 			}
 
+			@Serial
 			private static final long serialVersionUID = 1L;
 		}, queueKey);
 
 		// Check, that IOException is propagated
-		assertThrows(IOException.class, () -> {
-			queueWriter.invoke(new File(""), null);
-		});
+		assertThrows(IOException.class, () ->
+			queueWriter.invoke(new File(""), null));
 
 		// Check, that queue is empty and closed because of exception on processing (so
 		// no other worker should move on)
-		assertThrows("Queue must be closed", InterruptedException.class, () -> {
-			queue.take();
-		});
+		assertThrows(InterruptedException.class, queue::take, "Queue must be closed");
 
 	}
 
