@@ -1,7 +1,5 @@
 package htmlpublisher.util;
 
-import org.junit.Test;
-
 import hudson.model.TaskListener;
 import hudson.util.DirScanner;
 import hudson.util.FileVisitor;
@@ -9,21 +7,24 @@ import hudson.FilePath;
 import jenkins.util.Timer;
 
 import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 
+import java.io.Serial;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.assertThrows;
+import org.junit.jupiter.api.Test;
 
-public class MultithreadedFileCopyHelperTest {
+class MultithreadedFileCopyHelperTest {
 
-	@Test
-	public void testScanWithIOException() {
+    @Test
+    void testScanWithIOException() {
 
 		// Check, that IOException on scanning for files is propagated
-		assertThrows(IOException.class, () -> {
+		assertThrows(IOException.class, () ->
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")),
 					// Test Scanner that always throws IOException
 					new DirScanner() {
@@ -31,14 +32,14 @@ public class MultithreadedFileCopyHelperTest {
 							throw new IOException();
 						}
 
+						@Serial
 						private static final long serialVersionUID = 1L;
-					}, null, null, 1, Timer.get(), 10, TaskListener.NULL);
-		});
+					}, null, null, 1, Timer.get(), 10, TaskListener.NULL));
 
 	}
 
-	@Test
-	public void testWorkerWithTimeout() {
+    @Test
+    void testWorkerWithTimeout() {
 
 		// Simulate a scheduler where all threads are busy so our worker gets no free
 		// slot and runs into timeout
@@ -50,24 +51,24 @@ public class MultithreadedFileCopyHelperTest {
 		});
 
 		// Check, that we come to an end and a TimeoutException is propagated
-		assertThrows(TimeoutException.class, () -> {
+		assertThrows(TimeoutException.class, () ->
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")), new DirScanner() {
 				public void scan(File file, FileVisitor visitor) {
 					// noop
 				}
 
+				@Serial
 				private static final long serialVersionUID = 1L;
 			}, null, null, // No target path, no description
 					1, // Start one worker
 					singleExecutorService, // Limit parallel processing to 1 thread
 					1, // Timeout = 1 second (too short!)
-					TaskListener.NULL);
-		});
+					TaskListener.NULL));
 
 	}
 
-	@Test
-	public void testWorkerWithoutTimeout() throws Exception {
+    @Test
+    void testWorkerWithoutTimeout() throws Exception {
 
 		// Simulate a scheduler where all threads are busy so our worker needs to wait
 		// some time but comes to an end
@@ -84,6 +85,7 @@ public class MultithreadedFileCopyHelperTest {
 				// noop
 			}
 
+			@Serial
 			private static final long serialVersionUID = 1L;
 		}, new FilePath(new File("")), // Target dir
 				null, // no description
