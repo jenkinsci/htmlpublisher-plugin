@@ -6,32 +6,39 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.BuildWatcher;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TemporaryDirectoryAllocator;
 import org.jvnet.hudson.test.TestBuilder;
+import org.jvnet.hudson.test.junit.jupiter.BuildWatcherExtension;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
+
 import java.io.IOException;
 import java.util.Arrays;
 
 /**
  * @author Vishal Wagh
  */
-public class Security3547Test {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class Security3547Test {
 
-    @Rule
-    public BuildWatcher buildWatcher = new BuildWatcher();
+    private JenkinsRule j;
 
-    public TemporaryDirectoryAllocator tmp = new TemporaryDirectoryAllocator();
+    @SuppressWarnings("unused")
+    @RegisterExtension
+    private static final BuildWatcherExtension BUILD_WATCHER = new BuildWatcherExtension();
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     /**
      * Makes sure that the configuration survives the round trip.
      */
     @Test
-    public void buildSuccessfulScenario() throws Exception {
+    void buildSuccessfulScenario() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("include_job");
         final String reportDir = "autogen";
         p.getBuildersList().add(new TestBuilder() {
@@ -53,7 +60,7 @@ public class Security3547Test {
     }
 
     @Test
-    public void zeroCopyFailureScenario() throws Exception {
+    void zeroCopyFailureScenario() throws Exception {
         FreeStyleProject p = j.createFreeStyleProject("include_job");
         p.getBuildersList().add(new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {

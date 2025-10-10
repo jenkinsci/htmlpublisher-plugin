@@ -185,7 +185,7 @@ class PublishHTMLStepTest {
     }
 
     @Test
-    public void testGetIconFileNameSymbolIcon() throws Exception {
+    void testGetIconFileNameSymbolIcon() throws Exception {
         // Prepare the environment
         writeTestHTML("index.html");
         
@@ -196,12 +196,12 @@ class PublishHTMLStepTest {
         
         // Verify that getIconFileName() correctly returns the custom icon
         HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
-        assertNotNull("Report should exist", jobReport);
+        assertNotNull(jobReport, "Report should exist");
         assertEquals("symbol-custom-icon", jobReport.getIconFileName());
     }
 
     @Test
-    public void testGetIconFileNameCustomPath() throws Exception {
+    void testGetIconFileNameCustomPath() throws Exception {
         // Prepare the environment
         writeTestHTML("index.html");
         testReportDir.mkdirs();
@@ -215,12 +215,12 @@ class PublishHTMLStepTest {
         
         // Verify that getIconFileName() correctly returns the specified file
         HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
-        assertNotNull("Report should exist", jobReport);
-        assertTrue("Icon should contain project URL", jobReport.getIconFileName().contains("custom-icon.png"));
+        assertNotNull(jobReport, "Report should exist");
+        assertTrue(jobReport.getIconFileName().contains("custom-icon.png"), "Icon should contain project URL");
     }
 
     @Test
-    public void testGetIconFileNameDefaultIfMissingFile() throws Exception {
+    void testGetIconFileNameDefaultIfMissingFile() throws Exception {
         // Prepare the environment
         writeTestHTML("index.html");
 
@@ -231,7 +231,7 @@ class PublishHTMLStepTest {
         
         // Verify that getIconFileName() correctly returns the default icon
         HtmlPublisherTarget.HTMLAction jobReport = target.new HTMLAction(job, target); 
-        assertNotNull("Report should exist", jobReport);
+        assertNotNull(jobReport, "Report should exist");
         assertEquals("symbol-document-text", jobReport.getIconFileName());
     }
 
