@@ -1,6 +1,6 @@
 package htmlpublisher.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -79,7 +79,7 @@ class MultithreadedFileCopyHelperTest {
 
 		// Check, that our worker tasks are cancelled
 		long cancelledCount = executorService.getTrackedTasks().stream().filter(Future::isCancelled).count();
-		assertEquals("Expected our worker tasks to be cancelled", numberOfWorkers, cancelledCount);
+		assertEquals(numberOfWorkers, cancelledCount, "Expected our worker tasks to be cancelled");
 
 	}
 
