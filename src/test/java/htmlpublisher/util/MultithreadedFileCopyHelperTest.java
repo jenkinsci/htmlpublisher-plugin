@@ -1,25 +1,23 @@
 package htmlpublisher.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+
+import org.junit.jupiter.api.Test;
+
+import hudson.FilePath;
 import hudson.model.TaskListener;
 import hudson.util.DirScanner;
 import hudson.util.FileVisitor;
-import hudson.FilePath;
 import jenkins.util.Timer;
-
-import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import java.io.IOException;
-
-import java.io.Serial;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import org.junit.jupiter.api.Test;
 
 class MultithreadedFileCopyHelperTest {
 
@@ -27,7 +25,7 @@ class MultithreadedFileCopyHelperTest {
     void testScanWithIOException() {
 
 		// Check, that IOException on scanning for files is propagated
-		assertThrows(IOException.class, () ->
+		assertThrows(IOException.class, () -> {
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")),
 					// Test Scanner that always throws IOException
 					new DirScanner() {
