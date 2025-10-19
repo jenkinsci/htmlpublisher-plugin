@@ -1,11 +1,9 @@
 package htmlpublisher;
 
-import static org.junit.Assert.assertEquals;
+import java.util.List;
 
-import java.util.Arrays;
-
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.CreateFileBuilder;
 import org.jvnet.hudson.test.JenkinsRule;
 
@@ -13,20 +11,29 @@ import org.htmlunit.html.HtmlInlineFrame;
 import org.htmlunit.html.HtmlPage;
 
 import hudson.model.FreeStyleProject;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class HtmlFileNameTest {
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@WithJenkins
+class HtmlFileNameTest {
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
-    public void fileNameWithSpecialCharactersAndSingleSlash() throws Exception {
+    void fileNameWithSpecialCharactersAndSingleSlash() throws Exception {
         final String content = "<html><head><title>test</title></head><body>Hello world!</body></html>";
 
         FreeStyleProject job = j.createFreeStyleProject();
 
         job.getBuildersList().add(new CreateFileBuilder("subdir/#$+,;= @.html", content));
-        job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
-            new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false))));
+        job.getPublishersList().add(new HtmlPublisher(List.of(
+		        new HtmlPublisherTarget("report-name", "", "subdir/*.html", true, true, false))));
         job.save();
 
         j.buildAndAssertSuccess(job);
@@ -43,16 +50,16 @@ public class HtmlFileNameTest {
         HtmlPage pageInIframe = (HtmlPage) iframe.getEnclosedPage();
         assertEquals("Hello world!", pageInIframe.getBody().asNormalizedText());
     }
-    
+
     @Test
-    public void fileNameWithSpecialCharactersAndMultipleSlashes() throws Exception {
+    void fileNameWithSpecialCharactersAndMultipleSlashes() throws Exception {
         final String content = "<html><head><title>test</title></head><body>Hello world!</body></html>";
 
         FreeStyleProject job = j.createFreeStyleProject();
 
         job.getBuildersList().add(new CreateFileBuilder("subdir/subdir2/#$+,;= @.html", content));
-        job.getPublishersList().add(new HtmlPublisher(Arrays.asList(
-            new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false))));
+        job.getPublishersList().add(new HtmlPublisher(List.of(
+		        new HtmlPublisherTarget("report-name", "", "subdir/subdir2/*.html", true, true, false))));
         job.save();
 
         j.buildAndAssertSuccess(job);
