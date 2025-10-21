@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.12</version>
+    <version>5.27</version>
     <relativePath />
   </parent>
 
@@ -14,6 +14,7 @@
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
     <jenkins.baseline>2.479</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
   </properties>
 
   <licenses>
@@ -62,6 +63,10 @@
   </pluginRepositories>
   <dependencies>
     <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>commons-lang3-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>matrix-project</artifactId>
       <optional>true</optional>
@@ -99,7 +104,7 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.20.6</version>
+      <version>1.21.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -47,7 +47,7 @@ import java.util.List;
 
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
@@ -249,11 +249,13 @@ public class HtmlPublisher extends Recorder {
 
             try {
                 if (!archiveDir.exists()) {
-                    listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                     if (!allowMissing) {
+                        listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
                         build.setResult(Result.FAILURE);
                         return true;
                     }
+
+                    logger.println("[htmlpublisher] Specified HTML directory '" + archiveDir + "' does not exist.");
                 }
 
                 if (!keepAll) {

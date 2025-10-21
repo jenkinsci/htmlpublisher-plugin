@@ -1,18 +1,18 @@
 package htmlpublisher.util;
 
-import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertThrows;
+import org.junit.jupiter.api.Test;
 
-public class QueueReadingDirScannerTest {
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-	@Test
-	public void testVisitWithIOException() {
+class QueueReadingDirScannerTest {
+
+    @Test
+    void testVisitWithIOException() {
 
 		UUID queueKey = UUID.randomUUID();
 		FileEntryQueue queue = FileEntryQueue.getOrCreateQueue(queueKey);
@@ -24,15 +24,12 @@ public class QueueReadingDirScannerTest {
 		QueueReadingDirScanner dirScanner = new QueueReadingDirScanner(queueKey);
 
 		// Check, that IOException is propagated
-		assertThrows(IOException.class, () -> {
-			dirScanner.scan(new File(""), new IOExceptionFileVisitor());
-		});
+		assertThrows(IOException.class, () ->
+			dirScanner.scan(new File(""), new IOExceptionFileVisitor()));
 
 		// Check, that queue is empty and closed because of exception on processing
 		// first file (so no other worker should move on)
-		assertThrows("Queue must be empty and closed", InterruptedException.class, () -> {
-			queue.take();
-		});
+		assertThrows(InterruptedException.class, queue::take, "Queue must be empty and closed");
 
 	}
 
