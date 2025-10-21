@@ -31,67 +31,64 @@ import hudson.model.Result;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.util.Collection;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for WorkflowActionsFactory
  */
-public class WorkflowActionsFactoryTest {
+@WithJenkins
+class WorkflowActionsFactoryTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
-
-    @Rule
-    public TemporaryFolder tmp = new TemporaryFolder();
+    private JenkinsRule j;
 
     private WorkflowActionsFactory factory;
     private HtmlPublisherTarget testTarget;
     private static final String TEST_REPORT_DIR = "htmlreports";
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
         factory = new WorkflowActionsFactory();
         testTarget = new HtmlPublisherTarget("TestReport", TEST_REPORT_DIR, "index.html", false, false, false);
     }
 
     @Test
-    public void testTypeReturnsJobClass() {
-        assertEquals("Factory should return Job.class as its type", Job.class, factory.type());
+    void testTypeReturnsJobClass() {
+        assertEquals(Job.class, factory.type(), "Factory should return Job.class as its type");
     }
 
     @Test
-    public void testNonWorkflowJobReturnsEmptyActions() throws Exception {
+    void testNonWorkflowJobReturnsEmptyActions() throws Exception {
         // Create a freestyle project (non-workflow)
         hudson.model.FreeStyleProject project = j.createFreeStyleProject("freestyle-test");
         
         Collection<? extends Action> actions = factory.createFor(project);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertTrue("Non-workflow job should return empty actions", actions.isEmpty());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertTrue(actions.isEmpty(), "Non-workflow job should return empty actions");
     }
 
     @Test
-    public void testWorkflowJobWithNoBuildsReturnsEmptyActions() throws Exception {
+    void testWorkflowJobWithNoBuildsReturnsEmptyActions() throws Exception {
         // Create a workflow job with no builds
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-no-builds");
         job.setDefinition(new CpsFlowDefinition("echo 'Hello World'", true));
         
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertTrue("Job with no builds should return empty actions", actions.isEmpty());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertTrue(actions.isEmpty(), "Job with no builds should return empty actions");
     }
 
     @Test
-    public void testWorkflowJobWithSuccessfulBuildAndKeepAllTrue() throws Exception {
+    void testWorkflowJobWithSuccessfulBuildAndKeepAllTrue() throws Exception {
         // Create workflow job without trying to run the pipeline
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-keepall-success");
         
@@ -110,18 +107,18 @@ public class WorkflowActionsFactoryTest {
         // Test the factory
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertEquals("Should return 1 action for keepAll=true with successful build", 1, actions.size());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertEquals(1, actions.size(), "Should return 1 action for keepAll=true with successful build");
         
         Action action = actions.iterator().next();
-        assertTrue("Action should be HTMLAction", action instanceof HtmlPublisherTarget.HTMLAction);
+        assertTrue(action instanceof HtmlPublisherTarget.HTMLAction, "Action should be HTMLAction");
         
         HtmlPublisherTarget.HTMLAction htmlAction = (HtmlPublisherTarget.HTMLAction) action;
-        assertEquals("Report name should match", "TestReport", htmlAction.getHTMLTarget().getReportName());
+        assertEquals("TestReport", htmlAction.getHTMLTarget().getReportName(), "Report name should match");
     }
 
     @Test
-    public void testWorkflowJobWithFailedBuildAndKeepAllFalse() throws Exception {
+    void testWorkflowJobWithFailedBuildAndKeepAllFalse() throws Exception {
         // Create workflow job with a simple failed build (no writeFile needed)
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-nokeepall-failure");
         job.setDefinition(new CpsFlowDefinition("error 'Simulated failure'", true));
@@ -139,18 +136,18 @@ public class WorkflowActionsFactoryTest {
         // Test the factory
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertEquals("Should return 1 action for keepAll=false with failed build", 1, actions.size());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertEquals(1, actions.size(), "Should return 1 action for keepAll=false with failed build");
         
         Action action = actions.iterator().next();
-        assertTrue("Action should be HTMLAction", action instanceof HtmlPublisherTarget.HTMLAction);
+        assertTrue(action instanceof HtmlPublisherTarget.HTMLAction, "Action should be HTMLAction");
         
         HtmlPublisherTarget.HTMLAction htmlAction = (HtmlPublisherTarget.HTMLAction) action;
-        assertEquals("Report name should match", "TestReport", htmlAction.getHTMLTarget().getReportName());
+        assertEquals("TestReport", htmlAction.getHTMLTarget().getReportName(), "Report name should match");
     }
 
     @Test
-    public void testWorkflowJobWithSuccessfulAndFailedBuilds() throws Exception {
+    void testWorkflowJobWithSuccessfulAndFailedBuilds() throws Exception {
         // Test scenario: last successful build has build actions, last build (failed) has marker actions
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-mixed-builds");
         
@@ -173,13 +170,13 @@ public class WorkflowActionsFactoryTest {
         // Test the factory - should find both reports
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertEquals("Should return 2 actions (one from successful build, one from failed build)", 2, actions.size());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertEquals(2, actions.size(), "Should return 2 actions (one from successful build, one from failed build)");
         
         // Verify both reports are present
         boolean foundSuccessReport = false, foundFailReport = false;
         for (Action action : actions) {
-            assertTrue("All actions should be HTMLAction", action instanceof HtmlPublisherTarget.HTMLAction);
+            assertTrue(action instanceof HtmlPublisherTarget.HTMLAction, "All actions should be HTMLAction");
             HtmlPublisherTarget.HTMLAction htmlAction = (HtmlPublisherTarget.HTMLAction) action;
             String reportName = htmlAction.getHTMLTarget().getReportName();
             if ("SuccessReport".equals(reportName)) {
@@ -189,12 +186,12 @@ public class WorkflowActionsFactoryTest {
             }
         }
         
-        assertTrue("Should find SuccessReport from last successful build", foundSuccessReport);
-        assertTrue("Should find FailReport from last (failed) build", foundFailReport);
+        assertTrue(foundSuccessReport, "Should find SuccessReport from last successful build");
+        assertTrue(foundFailReport, "Should find FailReport from last (failed) build");
     }
 
     @Test
-    public void testWorkflowJobWithOnlyFailedBuilds() throws Exception {
+    void testWorkflowJobWithOnlyFailedBuilds() throws Exception {
         // Test scenario: no successful builds, only failed builds with marker actions
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-only-failed");
         job.setDefinition(new CpsFlowDefinition(
@@ -213,40 +210,40 @@ public class WorkflowActionsFactoryTest {
         // Test the factory
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertEquals("Should return 1 action from failed build", 1, actions.size());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertEquals(1, actions.size(), "Should return 1 action from failed build");
         
         Action action = actions.iterator().next();
-        assertTrue("Action should be HTMLAction", action instanceof HtmlPublisherTarget.HTMLAction);
+        assertTrue(action instanceof HtmlPublisherTarget.HTMLAction, "Action should be HTMLAction");
         
         HtmlPublisherTarget.HTMLAction htmlAction = (HtmlPublisherTarget.HTMLAction) action;
-        assertEquals("Report name should match", "TestReport", htmlAction.getHTMLTarget().getReportName());
+        assertEquals("TestReport", htmlAction.getHTMLTarget().getReportName(), "Report name should match");
     }
 
     @Test
-    public void testWorkflowJobClassNameMatching() throws Exception {
+    void testWorkflowJobClassNameMatching() throws Exception {
         // Test that the factory correctly identifies workflow jobs by class name
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-classname-test");
         
         // The class name should start with "org.jenkinsci.plugins.workflow"
-        assertTrue("WorkflowJob class name should start with workflow package", 
-            job.getClass().getCanonicalName().startsWith("org.jenkinsci.plugins.workflow"));
+        assertTrue(job.getClass().getCanonicalName().startsWith("org.jenkinsci.plugins.workflow"), 
+            "WorkflowJob class name should start with workflow package");
         
         // Even with no builds, it should process workflow jobs (but return empty)
         Collection<? extends Action> actions = factory.createFor(job);
-        assertNotNull("Actions collection should not be null", actions);
-        assertTrue("No builds should result in empty actions", actions.isEmpty());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertTrue(actions.isEmpty(), "No builds should result in empty actions");
     }
 
     @Test
-    public void testFactoryLogicWithNullBuilds() throws Exception {
+    void testFactoryLogicWithNullBuilds() throws Exception {
         // Test factory behavior when getLastSuccessfulBuild() and getLastBuild() return null
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "workflow-null-builds");
         // Don't run any builds
         
         Collection<? extends Action> actions = factory.createFor(job);
         
-        assertNotNull("Actions collection should not be null", actions);
-        assertTrue("No builds should result in empty actions", actions.isEmpty());
+        assertNotNull(actions, "Actions collection should not be null");
+        assertTrue(actions.isEmpty(), "No builds should result in empty actions");
     }
 }
