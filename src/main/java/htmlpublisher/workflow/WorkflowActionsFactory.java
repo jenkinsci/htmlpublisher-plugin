@@ -56,22 +56,27 @@ public class WorkflowActionsFactory extends TransientActionFactory<Job> {
         List<Action> actions = new LinkedList<>();
         if (j.getClass().getCanonicalName().startsWith("org.jenkinsci.plugins.workflow"))
         {
-            final Run<?,?> r = j.getLastSuccessfulBuild();
-            if (r != null) {
-                // If reports are being saved on the build level (keep for all builds)
-                List<HtmlPublisherTarget.HTMLBuildAction> reports = r.getActions(HtmlPublisherTarget.HTMLBuildAction.class);
+            final Run<?,?> lastSuccessful = j.getLastSuccessfulBuild();
+            final Run<?,?> lastBuild = j.getLastBuild();
+            
+            // First check last successful build for build-level reports (keepAll=true)
+            if (lastSuccessful != null) {
+                List<HtmlPublisherTarget.HTMLBuildAction> reports = lastSuccessful.getActions(HtmlPublisherTarget.HTMLBuildAction.class);
                 for (HtmlPublisherTarget.HTMLBuildAction report : reports) {
                     actions.add(report.getHTMLTarget().getProjectAction(j));
                 }
-                
-                // If reports are being saved on the project level
+            }
+            
+            // Check last build (even if failed) for project-level markers (keepAll=false)
+            if (lastBuild != null) {
                 List<HtmlPublisherTarget.HTMLPublishedForProjectMarkerAction> projectLevelReports = 
-                        r.getActions(HtmlPublisherTarget.HTMLPublishedForProjectMarkerAction.class);
+                        lastBuild.getActions(HtmlPublisherTarget.HTMLPublishedForProjectMarkerAction.class);
                 for (HtmlPublisherTarget.HTMLPublishedForProjectMarkerAction report : projectLevelReports) {
                     actions.add(report.getHTMLTarget().getProjectAction(j));
                 }
-            }       
+            }
         }
+        
         return actions;
     }
 }
