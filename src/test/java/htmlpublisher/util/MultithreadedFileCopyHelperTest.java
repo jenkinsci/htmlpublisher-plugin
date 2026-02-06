@@ -1,22 +1,23 @@
 package htmlpublisher.util;
 
-import hudson.model.TaskListener;
-import hudson.util.DirScanner;
-import hudson.util.FileVisitor;
-import hudson.FilePath;
-import jenkins.util.Timer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
-
 import java.io.Serial;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
+
+import hudson.FilePath;
+import hudson.model.TaskListener;
+import hudson.util.DirScanner;
+import hudson.util.FileVisitor;
+import jenkins.util.Timer;
 
 class MultithreadedFileCopyHelperTest {
 
@@ -24,7 +25,7 @@ class MultithreadedFileCopyHelperTest {
     void testScanWithIOException() {
 
 		// Check, that IOException on scanning for files is propagated
-		assertThrows(IOException.class, () ->
+		assertThrows(IOException.class, () -> {
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")),
 					// Test Scanner that always throws IOException
 					new DirScanner() {
@@ -34,36 +35,51 @@ class MultithreadedFileCopyHelperTest {
 
 						@Serial
 						private static final long serialVersionUID = 1L;
-					}, null, null, 1, Timer.get(), 10, TaskListener.NULL));
+
+					}, new FilePath(new File("")), // Target dir
+					null, // No description
+					1, Timer.get(), 10, TaskListener.NULL);
+		});
 
 	}
 
-    @Test
-    void testWorkerWithTimeout() {
+	@Test
+	public void testWorkerWithTimeoutCancellation() {
+
+		final int numberOfWorkers = 2;
 
 		// Simulate a scheduler where all threads are busy so our worker gets no free
 		// slot and runs into timeout
-		ExecutorService singleExecutorService = Executors.newSingleThreadScheduledExecutor();
+		TrackingExecutorService executorService = new TrackingExecutorService(
+				Executors.newSingleThreadScheduledExecutor());
 
-		singleExecutorService.submit(() -> {
+		executorService.submit(() -> {
 			Thread.sleep(10000);
 			return true;
 		});
 
 		// Check, that we come to an end and a TimeoutException is propagated
-		assertThrows(TimeoutException.class, () ->
+		assertThrows(TimeoutException.class, () -> {
+
 			MultithreadedFileCopyHelper.copyRecursiveTo(new FilePath(new File("")), new DirScanner() {
-				public void scan(File file, FileVisitor visitor) {
+				public void scan(File file, FileVisitor visitor) throws IOException {
 					// noop
 				}
 
 				@Serial
 				private static final long serialVersionUID = 1L;
-			}, null, null, // No target path, no description
-					1, // Start one worker
-					singleExecutorService, // Limit parallel processing to 1 thread
-					1, // Timeout = 1 second (too short!)
-					TaskListener.NULL));
+			}, new FilePath(new File("target-dir")), // Target dir
+					null, // No description
+					numberOfWorkers, // Start number of workers
+					executorService, // Limit parallel processing to 1 thread
+					0, // Raise immediate timeout
+					TaskListener.NULL);
+
+		});
+
+		// Check, that our worker tasks are cancelled
+		long cancelledCount = executorService.getTrackedTasks().stream().filter(Future::isCancelled).count();
+		assertEquals(numberOfWorkers, cancelledCount, "Expected our worker tasks to be cancelled");
 
 	}
 
