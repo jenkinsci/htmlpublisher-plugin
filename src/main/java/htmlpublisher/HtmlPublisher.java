@@ -110,6 +110,7 @@ public class HtmlPublisher extends Recorder {
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
     private static final String FOOTER = "/htmlpublisher/HtmlPublisher/footer.html";
+    private static final String JS_FILE = "/htmlpublisher/js/htmlpublisher.js";
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
@@ -231,12 +232,23 @@ public class HtmlPublisher extends Recorder {
             logger.print("Exception occurred reading file "+FOOTER+", message:"+ex.getMessage());
             return false;
         }
+        List<String> jsLines;
+        try {
+            jsLines = readFile(JS_FILE, publisherClass);
+        } catch (IOException ex) {
+            logger.print("Exception occurred reading file "+JS_FILE+", message:"+ex.getMessage());
+            return false;
+        }
 
 
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
-            reportLines.add("<script type=\"text/javascript\" src=\"" + getStaticResourcesUrl() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
+            // Inline the JavaScript so the wrapper HTML works both when served by Jenkins
+            // and when opened locally from a downloaded zip (see JENKINS-76169)
+            reportLines.add("<script type=\"text/javascript\">");
+            reportLines.addAll(jsLines);
+            reportLines.add("</script>");
             HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
