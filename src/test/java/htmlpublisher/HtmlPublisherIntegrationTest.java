@@ -25,6 +25,9 @@ import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -206,6 +209,38 @@ class HtmlPublisherIntegrationTest {
         assertTrue(content.contains("nested1/aReportDir/nested/afile.html"));
         assertTrue(content.contains("otherDir/afile.html"));
         assertFalse(content.contains("notincluded/afile.html"));
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
+    void testWrapperContainsInlinedJavaScript() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("inline_js_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target = new HtmlPublisherTarget(
+                "report", reportDir, "index.html", true, true, false);
+        p.getPublishersList().add(new HtmlPublisher(List.of(target)));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        File wrapperFile = new File(build.getRootDir(),
+                "htmlreports/report/htmlpublisher-wrapper.html");
+        assertTrue(wrapperFile.exists());
+        String content = new String(Files.readAllBytes(wrapperFile.toPath()));
+        // The JS must be inlined, not loaded via an external src attribute
+        assertTrue(content.contains("<script type=\"text/javascript\">"),
+                "Wrapper should contain an inline <script> tag");
+        assertTrue(content.contains("function updateBody(tabId)"),
+                "Wrapper should contain inlined JavaScript function body");
+        assertTrue(content.contains("</script>"),
+                "Wrapper should close the inline script tag");
+        assertFalse(content.contains("<script type=\"text/javascript\" src="),
+                "Wrapper should NOT reference external JavaScript via src");
     }
 
     @Test
@@ -394,6 +429,48 @@ class HtmlPublisherIntegrationTest {
         //agentContainer.getHost()
         agentContainer.start();
         j.waitOnline(agent);
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
+    void testPublishReportsReturnsFalseWhenJsResourceMissing() throws Exception {
+        // Create a classloader that blocks the JavaScript resource
+        // but delegates everything else to the real classloader
+        ClassLoader filteredLoader = new ClassLoader(HtmlPublisher.class.getClassLoader()) {
+            @Override
+            public InputStream getResourceAsStream(String name) {
+                if ("htmlpublisher/js/htmlpublisher.js".equals(name)) {
+                    return null; // simulate missing JS resource
+                }
+                return super.getResourceAsStream(name);
+            }
+        };
+
+        // Create a proxy class loaded by filteredLoader so that
+        // Class.getResourceAsStream delegates to our filtered classloader
+        @SuppressWarnings("deprecation")
+        Class<?> publisherClass = Proxy.getProxyClass(filteredLoader, Serializable.class);
+
+        FreeStyleProject p = j.createFreeStyleProject("js_missing_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child("reportDir");
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+
+        HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target);
+
+        AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
+
+        boolean result = HtmlPublisher.publishReports(
+                build, build.getWorkspace(), j.createTaskListener(), targets, publisherClass);
+
+        assertFalse(result, "publishReports should return false when JS resource is unavailable");
     }
 
     static class MakeSymlink extends MasterToSlaveFileCallable<Void> {
