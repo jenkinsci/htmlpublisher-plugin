@@ -25,6 +25,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -206,6 +207,38 @@ class HtmlPublisherIntegrationTest {
         assertTrue(content.contains("nested1/aReportDir/nested/afile.html"));
         assertTrue(content.contains("otherDir/afile.html"));
         assertFalse(content.contains("notincluded/afile.html"));
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
+    void testWrapperContainsInlinedJavaScript() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("inline_js_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target = new HtmlPublisherTarget(
+                "report", reportDir, "index.html", true, true, false);
+        p.getPublishersList().add(new HtmlPublisher(List.of(target)));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        File wrapperFile = new File(build.getRootDir(),
+                "htmlreports/report/htmlpublisher-wrapper.html");
+        assertTrue(wrapperFile.exists());
+        String content = new String(Files.readAllBytes(wrapperFile.toPath()));
+        // The JS must be inlined, not loaded via an external src attribute
+        assertTrue(content.contains("<script type=\"text/javascript\">"),
+                "Wrapper should contain an inline <script> tag");
+        assertTrue(content.contains("function updateBody(tabId)"),
+                "Wrapper should contain inlined JavaScript function body");
+        assertTrue(content.contains("</script>"),
+                "Wrapper should close the inline script tag");
+        assertFalse(content.contains("<script type=\"text/javascript\" src="),
+                "Wrapper should NOT reference external JavaScript via src");
     }
 
     @Test
@@ -394,6 +427,114 @@ class HtmlPublisherIntegrationTest {
         //agentContainer.getHost()
         agentContainer.start();
         j.waitOnline(agent);
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
+    void testPublishReportsReturnsFalseWhenFooterResourceMissing() throws Exception {
+        Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/HtmlPublisher/footer.html");
+
+        FreeStyleProject p = j.createFreeStyleProject("footer_missing_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child("reportDir");
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+
+        HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target);
+
+        AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
+
+        boolean result = HtmlPublisher.publishReports(
+                build, build.getWorkspace(), j.createTaskListener(), targets, publisherClass);
+
+        assertFalse(result, "publishReports should return false when footer resource is unavailable");
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
+    void testPublishReportsReturnsFalseWhenJsResourceMissing() throws Exception {
+        Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/js/htmlpublisher.js");
+
+        FreeStyleProject p = j.createFreeStyleProject("js_missing_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child("reportDir");
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+
+        HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
+        List<HtmlPublisherTarget> targets = new ArrayList<>();
+        targets.add(target);
+
+        AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
+
+        boolean result = HtmlPublisher.publishReports(
+                build, build.getWorkspace(), j.createTaskListener(), targets, publisherClass);
+
+        assertFalse(result, "publishReports should return false when JS resource is unavailable");
+    }
+
+    /**
+     * Empty helper class whose bytecode is loaded via a custom classloader
+     * in resource-filtering tests.
+     */
+    static class ResourceTestHelper {}
+
+    /**
+     * Creates a {@code Class} loaded by a custom classloader that returns
+     * {@code null} from {@link Class#getResourceAsStream} for the given
+     * {@code blockedResource}, while delegating normally for all other
+     * resources.  The class is defined via {@code defineClass} so it lives
+     * in the classloader's <em>unnamed</em> module, which ensures
+     * {@code Class.getResourceAsStream} delegates to the classloader
+     * (unlike proxy classes in JDK 17+ which land in named dynamic modules).
+     */
+    private static Class<?> createFilteredPublisherClass(String blockedResource) throws Exception {
+        String className = HtmlPublisherIntegrationTest.class.getName() + "$ResourceTestHelper";
+        String classResource = className.replace('.', '/') + ".class";
+        final byte[] classBytes;
+        try (InputStream is = HtmlPublisherIntegrationTest.class.getClassLoader()
+                .getResourceAsStream(classResource)) {
+            classBytes = is.readAllBytes();
+        }
+
+        ClassLoader filteredLoader = new ClassLoader(HtmlPublisher.class.getClassLoader()) {
+            private Class<?> helperClass;
+
+            @Override
+            public InputStream getResourceAsStream(String name) {
+                if (blockedResource.equals(name)) {
+                    return null;
+                }
+                return super.getResourceAsStream(name);
+            }
+
+            @Override
+            protected synchronized Class<?> loadClass(String name, boolean resolve)
+                    throws ClassNotFoundException {
+                if (name.equals(className)) {
+                    if (helperClass == null) {
+                        helperClass = defineClass(name, classBytes, 0, classBytes.length);
+                    }
+                    if (resolve) {
+                        resolveClass(helperClass);
+                    }
+                    return helperClass;
+                }
+                return super.loadClass(name, resolve);
+            }
+        };
+
+        return filteredLoader.loadClass(className);
     }
 
     static class MakeSymlink extends MasterToSlaveFileCallable<Void> {
