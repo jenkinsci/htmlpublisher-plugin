@@ -150,7 +150,7 @@ public class HtmlPublisher extends Recorder {
         List<String> aList = new ArrayList<>();
         try (final InputStream is = publisherClass.getResourceAsStream(filePath);
                 final Reader r = new InputStreamReader(is, Charset.defaultCharset());
-                final BufferedReader br = new BufferedReader(r)){
+                final BufferedReader br = new BufferedReader(r)) {
             // We expect that files have been generated with the default system's charset
             String line;
             while ((line = br.readLine()) != null) {
