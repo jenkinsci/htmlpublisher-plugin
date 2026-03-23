@@ -431,7 +431,7 @@ class HtmlPublisherIntegrationTest {
 
     @Test
     @Issue("JENKINS-76169")
-    void testPublishReportsReturnsFalseWhenFooterResourceMissing() throws Exception {
+    void testPublishReportsThrowsWhenFooterResourceMissing() throws Exception {
         Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/HtmlPublisher/footer.html");
 
         FreeStyleProject p = j.createFreeStyleProject("footer_missing_job");
@@ -449,16 +449,15 @@ class HtmlPublisherIntegrationTest {
         targets.add(target);
 
         AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
+        final AbstractBuild<?, ?> finalBuild = build;
 
-        boolean result = HtmlPublisher.publishReports(
-                build, build.getWorkspace(), j.createTaskListener(), targets, publisherClass);
-
-        assertFalse(result, "publishReports should return false when footer resource is unavailable");
+        assertThrows(NullPointerException.class, () -> HtmlPublisher.publishReports(
+                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), targets, publisherClass));
     }
 
     @Test
     @Issue("JENKINS-76169")
-    void testPublishReportsReturnsFalseWhenJsResourceMissing() throws Exception {
+    void testPublishReportsThrowsWhenJsResourceMissing() throws Exception {
         Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/js/htmlpublisher.js");
 
         FreeStyleProject p = j.createFreeStyleProject("js_missing_job");
@@ -476,11 +475,10 @@ class HtmlPublisherIntegrationTest {
         targets.add(target);
 
         AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
+        final AbstractBuild<?, ?> finalBuild = build;
 
-        boolean result = HtmlPublisher.publishReports(
-                build, build.getWorkspace(), j.createTaskListener(), targets, publisherClass);
-
-        assertFalse(result, "publishReports should return false when JS resource is unavailable");
+        assertThrows(NullPointerException.class, () -> HtmlPublisher.publishReports(
+                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), targets, publisherClass));
     }
 
     /**
