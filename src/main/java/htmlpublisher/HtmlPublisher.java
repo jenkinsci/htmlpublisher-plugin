@@ -148,14 +148,10 @@ public class HtmlPublisher extends Recorder {
     public static List<String> readFile(String filePath, Class<?> publisherClass)
             throws java.io.IOException {
         List<String> aList = new ArrayList<>();
-        final InputStream is = publisherClass.getResourceAsStream(filePath);
-        if (is == null) {
-            throw new IOException("Resource not found: " + filePath);
-        }
-        try (Reader r = new InputStreamReader(is,
-                Charset.defaultCharset());
-                BufferedReader br = new BufferedReader(r)) {
-            // Files are generated with the default charset
+        try (final InputStream is = publisherClass.getResourceAsStream(filePath);
+                final Reader r = new InputStreamReader(is, Charset.defaultCharset());
+                final BufferedReader br = new BufferedReader(r)){
+            // We expect that files have been generated with the default system's charset
             String line;
             while ((line = br.readLine()) != null) {
                 aList.add(line);
