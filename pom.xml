@@ -135,4 +135,37 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-webapp-js-to-classpath</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <!-- Copy the single-source JS from webapp so it is also
+                   available via Class.getResourceAsStream() for inline
+                   embedding (JENKINS-76169), without keeping a duplicate
+                   file under src/main/resources. -->
+              <outputDirectory>${project.build.outputDirectory}/htmlpublisher/js</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/webapp/js</directory>
+                  <includes>
+                    <include>htmlpublisher.js</include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
