@@ -445,14 +445,11 @@ class HtmlPublisherIntegrationTest {
         });
 
         HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
-        List<HtmlPublisherTarget> targets = new ArrayList<>();
-        targets.add(target);
 
-        AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
-        final AbstractBuild<?, ?> finalBuild = build;
+        AbstractBuild<?, ?> finalBuild = j.buildAndAssertSuccess(p);
 
         assertThrows(NullPointerException.class, () -> HtmlPublisher.publishReports(
-                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), targets, publisherClass));
+                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), List.of(target), publisherClass));
     }
 
     @Test
@@ -471,14 +468,11 @@ class HtmlPublisherIntegrationTest {
         });
 
         HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
-        List<HtmlPublisherTarget> targets = new ArrayList<>();
-        targets.add(target);
 
-        AbstractBuild<?, ?> build = j.buildAndAssertSuccess(p);
-        final AbstractBuild<?, ?> finalBuild = build;
+        AbstractBuild<?, ?> finalBuild = j.buildAndAssertSuccess(p);
 
         assertThrows(NullPointerException.class, () -> HtmlPublisher.publishReports(
-                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), targets, publisherClass));
+                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), List.of(target), publisherClass));
     }
 
     /**
