@@ -109,6 +109,8 @@ public class HtmlPublisher extends Recorder {
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
     private static final String FOOTER = "/htmlpublisher/HtmlPublisher/footer.html";
     private static final String JS_FILE = "/htmlpublisher/js/htmlpublisher.js";
+    private static final String EXCEPTION_READING_FILE = "Exception occurred reading file ";
+    private static final String MESSAGE_SUFFIX = ", message:";
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
@@ -220,24 +222,21 @@ public class HtmlPublisher extends Recorder {
         try {
             headerLines = readFile(HEADER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occurred reading file "
-                    + HEADER + ", message:" + ex.getMessage());
+            logger.print(EXCEPTION_READING_FILE + HEADER + MESSAGE_SUFFIX + ex.getMessage());
             return false;
         }
         List<String> footerLines;
         try {
             footerLines = readFile(FOOTER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occurred reading file "
-                    + FOOTER + ", message:" + ex.getMessage());
+            logger.print(EXCEPTION_READING_FILE + FOOTER + MESSAGE_SUFFIX + ex.getMessage());
             return false;
         }
         List<String> jsLines;
         try {
             jsLines = readFile(JS_FILE, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occurred reading file "
-                    + JS_FILE + ", message:" + ex.getMessage());
+            logger.print(EXCEPTION_READING_FILE + JS_FILE + MESSAGE_SUFFIX + ex.getMessage());
             return false;
         }
 
