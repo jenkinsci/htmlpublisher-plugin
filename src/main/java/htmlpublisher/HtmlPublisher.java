@@ -47,7 +47,6 @@ import java.util.List;
 
 import hudson.util.DirScanner;
 import jenkins.util.SystemProperties;
-import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.accmod.restrictions.suppressions.SuppressRestrictedWarnings;
@@ -60,7 +59,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.Functions;
 import hudson.matrix.MatrixConfiguration;
 import hudson.matrix.MatrixProject;
 import hudson.model.AbstractBuild;
@@ -110,6 +108,9 @@ public class HtmlPublisher extends Recorder {
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
     private static final String FOOTER = "/htmlpublisher/HtmlPublisher/footer.html";
+    private static final String JS_FILE = "/htmlpublisher/js/htmlpublisher.js";
+    private static final String EXCEPTION_READING_FILE = "Exception occurred reading file ";
+    private static final String MESSAGE_SUFFIX = ", message:";
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
     public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
@@ -151,7 +152,7 @@ public class HtmlPublisher extends Recorder {
         List<String> aList = new ArrayList<>();
         try (final InputStream is = publisherClass.getResourceAsStream(filePath);
                 final Reader r = new InputStreamReader(is, Charset.defaultCharset());
-                final BufferedReader br = new BufferedReader(r)){
+                final BufferedReader br = new BufferedReader(r)) {
             // We expect that files have been generated with the default system's charset
             String line;
             while ((line = br.readLine()) != null) {
@@ -221,14 +222,21 @@ public class HtmlPublisher extends Recorder {
         try {
             headerLines = readFile(HEADER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occurred reading file "+HEADER+", message:"+ex.getMessage());
+            logger.print(EXCEPTION_READING_FILE + HEADER + MESSAGE_SUFFIX + ex.getMessage());
             return false;
         }
         List<String> footerLines;
         try {
             footerLines = readFile(FOOTER, publisherClass);
         } catch (IOException ex) {
-            logger.print("Exception occurred reading file "+FOOTER+", message:"+ex.getMessage());
+            logger.print(EXCEPTION_READING_FILE + FOOTER + MESSAGE_SUFFIX + ex.getMessage());
+            return false;
+        }
+        List<String> jsLines;
+        try {
+            jsLines = readFile(JS_FILE, publisherClass);
+        } catch (IOException ex) {
+            logger.print(EXCEPTION_READING_FILE + JS_FILE + MESSAGE_SUFFIX + ex.getMessage());
             return false;
         }
 
@@ -236,7 +244,12 @@ public class HtmlPublisher extends Recorder {
         for (int i=0; i < reportTargets.size(); i++) {
             // Create an array of lines we will eventually write out, initially the header.
             List<String> reportLines = new ArrayList<>(headerLines);
-            reportLines.add("<script type=\"text/javascript\" src=\"" + getStaticResourcesUrl() + "/plugin/htmlpublisher/js/htmlpublisher.js\"></script>");
+            // Inline the JavaScript so the wrapper HTML works
+            // both when served by Jenkins and when opened
+            // locally from a downloaded zip (JENKINS-76169)
+            reportLines.add("<script type=\"text/javascript\">");
+            reportLines.addAll(jsLines);
+            reportLines.add("</script>");
             HtmlPublisherTarget reportTarget = reportTargets.get(i);
             boolean keepAll = reportTarget.getKeepAll();
             boolean allowMissing = reportTarget.getAllowMissing();
@@ -389,15 +402,6 @@ public class HtmlPublisher extends Recorder {
             }
             return actions;
         }
-    }
-
-    private static String getStaticResourcesUrl() {
-        String rootUrl = Jenkins.get().getRootUrl();
-        if (rootUrl == null) {
-            rootUrl = "";
-        }
-
-        return StringUtils.stripEnd(rootUrl, "/") + Functions.getResourcePath();
     }
 
     private static void adjustMatrixProject(AbstractProject<?, ?> project) {
