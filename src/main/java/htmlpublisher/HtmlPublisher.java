@@ -342,10 +342,10 @@ public class HtmlPublisher extends Recorder {
                 reportLines.add(tabItem);
             }
             // Add the JS to change the link as appropriate.
-            String hudsonUrl = Jenkins.get().getRootUrl();
+            String hudsonUrl = StringUtils.defaultString(Jenkins.get().getRootUrl());
             Job job = build.getParent();
-            reportLines.add("<span class='links-data-holder' data-back-to-name='" + job.getName() + "' data-root-url='" +
-                    hudsonUrl + "' data-job-url='" + job.getUrl() + "' data-zip-link='" + reportTarget.getSanitizedName() + "'/>");
+            reportLines.add("<span class=\"links-data-holder\" data-back-to-name=\"" + htmlAttributeEscape(job.getName()) + "\" data-root-url=\"" +
+                    htmlAttributeEscape(hudsonUrl) + "\" data-job-url=\"" + htmlAttributeEscape(job.getUrl()) + "\" data-zip-link=\"" + htmlAttributeEscape(StringUtils.defaultString(reportTarget.getSanitizedName())) + "\"/>");
             // Now add the footer.
             reportLines.addAll(footerLines);
             // And write this as the index
