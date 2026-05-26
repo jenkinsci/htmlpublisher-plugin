@@ -3,6 +3,7 @@ package htmlpublisher;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class
 HtmlPublisherTest {
@@ -17,6 +18,18 @@ HtmlPublisherTest {
         assertEquals("hello", target1.getIncludes());
         target1.setIncludes("");
         assertEquals(HtmlPublisherTarget.INCLUDE_ALL_PATTERN, target1.getIncludes());
+    }
+
+    @Test
+    void testDefaultExcludes() {
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", "target", "tab1.html", true, true, false);
+        assertNull(target1.getExcludes());
+        target1.setExcludes(null);
+        assertNull(target1.getExcludes());
+        target1.setExcludes("bye");
+        assertEquals("bye", target1.getExcludes());
+        target1.setExcludes("");
+        assertNull(target1.getExcludes());
     }
 
     @Test
