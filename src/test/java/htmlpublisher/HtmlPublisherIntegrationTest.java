@@ -364,6 +364,18 @@ class HtmlPublisherIntegrationTest {
         assertTrue(new File(build.getRootDir(), "htmlreports/reportnameB/htmlpublisher-wrapper.html").exists());
     }
 
+    @Test
+    void testThrowingIOException() throws Exception {
+        HtmlPublisherTarget[] l = {
+                new HtmlPublisherTarget("a", "b", "c", true, true, false),
+        };
+
+        HtmlPublisher htmlpublisher = new HtmlPublisher(Arrays.asList(l), false);
+
+        // Check, that IOException is propagated
+		assertThrows(IOException.class, htmlpublisher::perform);
+    }
+
     private void addEnvironmentVariable(String key, String value) {
         EnvironmentVariablesNodeProperty prop = new EnvironmentVariablesNodeProperty();
         EnvVars envVars = prop.getEnvVars();
