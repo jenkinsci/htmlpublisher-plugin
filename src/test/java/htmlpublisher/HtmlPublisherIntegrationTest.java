@@ -120,6 +120,43 @@ class HtmlPublisherIntegrationTest {
         assertTrue(tab2Files.contains("tab2.html"));
         assertFalse(tab2Files.contains("dummy.html"));
     }
+    
+    @Test
+    void testExcludes() throws Exception {
+        FreeStyleProject p = j.createFreeStyleProject("exclude_job");
+        final String reportDir = "autogen";
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child(reportDir);
+                ws.child("tab1.html").write("hello", "UTF-8");
+                ws.child("tab2.html").write("hello", "UTF-8");
+                ws.child("dummy.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+        HtmlPublisherTarget target1 = new HtmlPublisherTarget("tab1", reportDir, "tab1.html", true, true, false);
+        target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
+        target1.setExcludes("tab2.html");
+        assertEquals("tab2.html", target1.getExcludes());
+        HtmlPublisherTarget target2 = new HtmlPublisherTarget("tab2", reportDir, "tab2.html", true, true, false);
+        target1.setIncludes(HtmlPublisherTarget.INCLUDE_ALL_PATTERN);
+        target2.setExcludes("tab*.html");
+        assertEquals("tab*.html", target2.getExcludes());
+        HtmlPublisherTarget[] l = { target1, target2 };
+        p.getPublishersList().add(new HtmlPublisher(Arrays.asList(l)));
+        AbstractBuild build = j.buildAndAssertSuccess(p);
+        File base = new File(build.getRootDir(), "htmlreports");
+        List<String> tab1Files = Arrays.asList(new File(base, "tab1").list());
+        List<String> tab2Files = Arrays.asList(new File(base, "tab2").list());
+        assertTrue(tab1Files.contains("dummy.html"));
+        assertTrue(tab1Files.contains("tab1.html"));
+        assertFalse(tab1Files.contains("tab2.html"));
+        // tab2 copied all files, excluding tab*.
+        assertTrue(tab2Files.contains("dummy.html"));
+        assertFalse(tab2Files.contains("tab1.html"));
+        assertFalse(tab2Files.contains("tab2.html"));
+    }
 
     @Test
     @Issue("SECURITY-3303")
