@@ -264,18 +264,22 @@ public class HtmlPublisher extends Recorder {
                 }
                 int copied = 0;
                 if (FOLLOW_SYMLINKS) {
-                    copied = archiveDir.copyRecursiveTo(reportTarget.getIncludes(), targetDir);
+                    copied = archiveDir.copyRecursiveTo(reportTarget.getIncludes(), reportTarget.getExcludes(), targetDir);
                 } else {
-                	int numberOfWorkers = reportTarget.getNumberOfWorkers();
-                	DirScanner dirScanner = dirScannerGlob(reportTarget.getIncludes(), null, true, LinkOption.NOFOLLOW_LINKS);
-                	if (numberOfWorkers <= 1) {
-                		logger.println("[htmlpublisher] Copying recursive using current thread");
-                        copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, reportTarget.getIncludes());
-                	} else {
-                		logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
-                		copied = MultithreadedFileCopyHelper.copyRecursiveTo(
-                				archiveDir, dirScanner, targetDir, reportTarget.getIncludes(), numberOfWorkers, Timer.get(), PUBLISH_WORKER_TIMEOUT, listener);
-                	}
+                    String description = reportTarget.getIncludes();
+                    if (reportTarget.getExcludes() != null) {
+                        description += ", without: " + reportTarget.getExcludes();
+                    }
+                    int numberOfWorkers = reportTarget.getNumberOfWorkers();
+                    DirScanner dirScanner = dirScannerGlob(reportTarget.getIncludes(), reportTarget.getExcludes(), true, LinkOption.NOFOLLOW_LINKS);
+                    if (numberOfWorkers <= 1) {
+                            logger.println("[htmlpublisher] Copying recursive using current thread");
+                    copied = archiveDir.copyRecursiveTo(dirScanner, targetDir, description);
+                    } else {
+                            logger.println("[htmlpublisher] Copying recursive using " + numberOfWorkers + " workers");
+                            copied = MultithreadedFileCopyHelper.copyRecursiveTo(
+                                            archiveDir, dirScanner, targetDir, description, numberOfWorkers, Timer.get(), PUBLISH_WORKER_TIMEOUT, listener);
+                    }
                 }
                 if (copied == 0) {
                     if (!allowMissing) {

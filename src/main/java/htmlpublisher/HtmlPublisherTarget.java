@@ -95,6 +95,8 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
 
     private String includes;
 
+    private String excludes;
+
     private Boolean escapeUnderscores;
 
     private Boolean useWrapperFileDirectly;
@@ -534,6 +536,22 @@ public class HtmlPublisherTarget extends AbstractDescribableImpl<HtmlPublisherTa
     @DataBoundSetter
     public void setIncludes(String includes) {
         this.includes = includes;
+    }
+
+    /**
+     * @return the pattern for excluding files, default to null if no pattern specified
+     */
+    public String getExcludes() {
+        return Util.fixEmpty(excludes);
+    }
+
+    /**
+     *
+     * @param excludes  Ant GLOB pattern
+     */
+    @DataBoundSetter
+    public void setExcludes(String excludes) {
+        this.excludes = excludes;
     }
 
     /**

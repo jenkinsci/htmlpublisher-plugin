@@ -34,6 +34,9 @@
     <f:entry field="includes" title="${%reportFiles.includes}" description="${%reportFiles.includesHelp}">
       <f:textbox default="**/*"/>
     </f:entry>
+    <f:entry field="excludes" title="${%reportFiles.excludes}" description="${%reportFiles.excludesHelp}">
+      <f:textbox default=""/>
+    </f:entry>
       <f:entry field="escapeUnderscores" title="${%escapeUnderscores.title}">
         <f:checkbox default="true"/>
       </f:entry>
