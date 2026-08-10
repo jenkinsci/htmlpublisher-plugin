@@ -1,5 +1,7 @@
 package htmlpublisher;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,7 +42,7 @@ HtmlPublisherTest {
 
     @Test
     void testReadFileThrowsExceptionForMissingResource() {
-        assertThrows(NullPointerException.class, () ->
+        assertThrows(IOException.class, () ->
                 HtmlPublisher.readFile("/nonexistent/resource.html", HtmlPublisher.class));
     }
 
