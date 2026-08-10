@@ -431,6 +431,29 @@ class HtmlPublisherIntegrationTest {
 
     @Test
     @Issue("JENKINS-76169")
+    void testPublishReportsThrowsWhenHeaderResourceMissing() throws Exception {
+        Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/HtmlPublisher/header.html");
+
+        FreeStyleProject p = j.createFreeStyleProject("header_missing_job");
+        p.getBuildersList().add(new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                    BuildListener listener) throws InterruptedException, IOException {
+                FilePath ws = build.getWorkspace().child("reportDir");
+                ws.child("index.html").write("hello", "UTF-8");
+                return true;
+            }
+        });
+
+        HtmlPublisherTarget target = new HtmlPublisherTarget("report", "reportDir", "index.html", true, true, false);
+
+        AbstractBuild<?, ?> finalBuild = j.buildAndAssertSuccess(p);
+
+        assertFalse(HtmlPublisher.publishReports(
+                finalBuild, finalBuild.getWorkspace(), j.createTaskListener(), List.of(target), publisherClass));
+    }
+
+    @Test
+    @Issue("JENKINS-76169")
     void testPublishReportsThrowsWhenFooterResourceMissing() throws Exception {
         Class<?> publisherClass = createFilteredPublisherClass("htmlpublisher/HtmlPublisher/footer.html");
 
