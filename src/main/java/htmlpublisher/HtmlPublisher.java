@@ -107,13 +107,16 @@ public class HtmlPublisher extends Recorder {
     static /*almost final*/ int PUBLISH_WORKER_TIMEOUT = SystemProperties.getInteger(HtmlPublisher.class.getName() + ".PUBLISH_WORKER_TIMEOUT", 300);
     
     private final List<HtmlPublisherTarget> reportTargets;
+    private final boolean shouldFailBuild;
 
     private static final String HEADER = "/htmlpublisher/HtmlPublisher/header.html";
     private static final String FOOTER = "/htmlpublisher/HtmlPublisher/footer.html";
+    
     @DataBoundConstructor
     @Restricted(NoExternalUse.class)
-    public HtmlPublisher(List<HtmlPublisherTarget> reportTargets) {
+    public HtmlPublisher(List<HtmlPublisherTarget> reportTargets, boolean shouldFailBuild = true) {
         this.reportTargets = reportTargets != null ? new ArrayList<>(reportTargets) : new ArrayList<>();
+        this.shouldFailBuild = shouldFailBuild;
     }
 
     public List<HtmlPublisherTarget> getReportTargets() {
@@ -251,7 +254,12 @@ public class HtmlPublisher extends Recorder {
                 if (!archiveDir.exists()) {
                     if (!allowMissing) {
                         listener.error("Specified HTML directory '" + archiveDir + "' does not exist.");
-                        build.setResult(Result.FAILURE);
+                        if (shouldFailBuild) {
+                            build.setResult(Result.FAILURE);
+                        } else {
+                            throw new IOException("Specified HTML directory '" + archiveDir + "' does not exist.");
+                        }
+                        
                         return true;
                     }
 
@@ -284,7 +292,11 @@ public class HtmlPublisher extends Recorder {
                         if (buildResult != null && buildResult.isBetterOrEqualTo(Result.UNSTABLE)) {
                             listener.error("This is especially strange since your build otherwise succeeded.");
                         }
-                        build.setResult(Result.FAILURE);
+                        if (shouldFailBuild) {
+                            build.setResult(Result.FAILURE);
+                        } else {
+                            throw new IOException("Directory '" + archiveDir + "' exists but failed copying to '" + targetDir.getName() + "'.");
+                        }
                         return true;
                     } else {
                         continue;
@@ -295,7 +307,11 @@ public class HtmlPublisher extends Recorder {
                     Util.displayIOException((IOException) e, listener);
                 }
                 e.printStackTrace(listener.fatalError("HTML Publisher failure"));
-                build.setResult(Result.FAILURE);
+                if (shouldFailBuild) {
+                    build.setResult(Result.FAILURE);
+                } else {
+                    throw new RuntimeException("HTML Publisher failure", e);
+                }
                 return true;
             }
 
