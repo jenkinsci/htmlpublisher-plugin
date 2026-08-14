@@ -61,5 +61,5 @@ To assist in the creation of the pipeline step, you can use the Snippet Generato
 
 #### Troubleshooting
 
-If you are having trouble viewing the published HTML reports, check your browser console to see if there are any errors about Content Security Policy. This is often a culprit. If see errors, review https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy for instructions on how to resolve.
+If you are having trouble viewing the published HTML reports, check your browser console to see if there are any errors about Content Security Policy. This is often a culprit. If you see errors, review https://wiki.jenkins.io/display/JENKINS/Configuring+Content+Security+Policy for instructions on how to resolve. The generated HTML report wrapper embeds the plugin JavaScript so downloaded reports can be opened locally; custom policies used for the wrapper must therefore allow inline scripts with `script-src 'unsafe-inline'`. The Jenkins-served report view continues to load the script from the plugin resource.
 

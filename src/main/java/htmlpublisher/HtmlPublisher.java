@@ -75,6 +75,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.types.FileSet;
 import jenkins.model.Jenkins;
 
