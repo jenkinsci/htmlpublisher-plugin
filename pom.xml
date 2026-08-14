@@ -15,7 +15,7 @@
     <hpi.bundledArtifacts>encoder</hpi.bundledArtifacts>
     <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
     <jenkins.baseline>2.479</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
   </properties>
 
