@@ -1,8 +1,11 @@
 package htmlpublisher;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class
 HtmlPublisherTest {
@@ -35,6 +38,12 @@ HtmlPublisherTest {
         // test underscores not escaped when not requested
         assertEquals(HtmlPublisherTarget.sanitizeReportName("foo_bar", false), HtmlPublisherTarget.sanitizeReportName("foo_bar", false));
 
+    }
+
+    @Test
+    void testReadFileThrowsExceptionForMissingResource() {
+        assertThrows(IOException.class, () ->
+                HtmlPublisher.readFile("/nonexistent/resource.html", HtmlPublisher.class));
     }
 
     @Test
