@@ -24,7 +24,7 @@ The HTML Publisher plugin can be configured in the post build portion of your Je
 ![Configuration](docs/images/blankFreestyleConfig.png)
 
 * HTML directory to archive - the path to the report directory to archive relative to the workspace.
-* Index page[s] - comma-seperated list of files that will be used as index pages. Ant patterns can be used.
+* Index page[s] - comma-separated list of files that will be used as index pages. Ant patterns can be used.
 * Index page title[s] (Optional) - optional title(s) for the index pages, which will be used as the tab names. If this is not provided, file names will be used instead.
 * Report title - the name of the report.
 
