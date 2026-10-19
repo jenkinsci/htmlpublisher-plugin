@@ -14,8 +14,9 @@
     <gitHubRepo>jenkinsci/htmlpublisher-plugin</gitHubRepo>
     <hpi.bundledArtifacts>encoder</hpi.bundledArtifacts>
     <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
-    <jenkins.baseline>2.479</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <jenkins.baseline>2.541</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+    <useBeta>true</useBeta>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
   </properties>
 
@@ -129,7 +130,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>4051.v78dce3ce8b_d6</version>
+        <version>7002.v028a_3607ddc8</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>

@@ -2,9 +2,11 @@ package htmlpublisher.HtmlPublisherTarget.BaseHTMLAction
 
 import htmlpublisher.HtmlPublisher
 import htmlpublisher.HtmlPublisherTarget
+import hudson.ExtensionList
 import hudson.Functions
 import hudson.Util
 import hudson.model.Descriptor
+import jenkins.security.csp.impl.CspDecorator
 
 import java.security.MessageDigest
 
@@ -24,6 +26,13 @@ def serveWrapper() {
     // don't actually serve the wrapper file, but use it as data source for the tab links only
     // this minimized the potential for mischief in the case of legacy archives without checksum
     st.contentType(value: "text/html;charset=UTF-8")
+
+    // Add CSP directive. Needed here, since it only applies when StaplerRequest is active.
+    // Keep in sync with serveWrapperLegacyDirectly.
+    // TODO Solve this a different way that doesn't access core implementation details.
+    //  Can we just include all registered page decorators like layout.jelly does?
+    def csp = ExtensionList.lookupSingleton(CspDecorator.class)
+    st.include(it: csp, page: 'httpHeaders.jelly')
 
     def header = HtmlPublisher.class.getResourceAsStream("/htmlpublisher/HtmlPublisher/header.html").text
     def footer = HtmlPublisher.class.getResourceAsStream("/htmlpublisher/HtmlPublisher/footer.html").text
@@ -57,9 +66,15 @@ def serveWrapper() {
 }
 
 def serveWrapperLegacyDirectly() {
-    // don't actually serve the wrapper file, but use it as data source for the tab links only
-    // this minimized the potential for mischief in the case of legacy archives without checksum
     st.contentType(value: "text/html;charset=UTF-8")
+
+    // Add CSP directive. Needed here, since it only applies when StaplerRequest is active.
+    // Keep in sync with serveWrapper.
+    // Note that this is only useful for wrapper files pre-dating cfcaf02's inline JS.
+    // TODO Solve this a different way that doesn't access core implementation details.
+    //  Can we just include all registered page decorators like layout.jelly does?
+    def csp = ExtensionList.lookupSingleton(CspDecorator.class)
+    st.include(it: csp, page: 'httpHeaders.jelly')
 
     def legacyFile = new File(my.dir(), "htmlpublisher-wrapper.html")
 
