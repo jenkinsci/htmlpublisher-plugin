@@ -313,8 +313,7 @@ public class HtmlPublisher extends Recorder {
                     Util.displayIOException((IOException) e, listener);
                 }
                 e.printStackTrace(listener.fatalError("HTML Publisher failure"));
-                build.setResult(Result.FAILURE);
-                return true;
+                throw new RuntimeException("HTML Publisher failure", e);
             }
 
             // Index files might be a list of ant patterns, e.g. "**/*index.html,**/*otherFile.html"
